@@ -1,0 +1,3 @@
+[submodule "vendor/libpng"]
+	path = vendor/libpng
+	url = https://github.com/glennrp/libpng
