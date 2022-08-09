@@ -1,8 +1,9 @@
 #pragma once
 
 #include "gold/graphics/model/model.h"
+#include "gold/memory.h"
 
-#define _NODISCARD [[nodiscard]]
+#include <memory>
 
 class gold_vector3;
 class gold_camera;
@@ -16,5 +17,5 @@ class gold_skybox
 	gold_skybox();
 
 	void render(const gold_camera *camera) const;
-	_NODISCARD gold_model *get_model() const;
+	gold_model *get_model() const;
 };

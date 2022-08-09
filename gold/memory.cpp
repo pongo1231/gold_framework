@@ -13,13 +13,15 @@ gold_memory::~gold_memory()
 
 void *gold_memory::_allocate(size_t size)
 {
+	std::lock_guard lock(mutex);
+
 	auto cur_address = reinterpret_cast<std::uintptr_t>(pool);
-	for (const auto &[ptr, size] : allocated_blocks)
+	for (const auto &[alloc_ptr, alloc_size] : allocated_blocks)
 	{
-		if (cur_address + size < ptr)
+		if (cur_address + size < alloc_ptr)
 			break;
 		else
-			cur_address = ptr + size;
+			cur_address = alloc_ptr + alloc_size;
 	}
 
 	auto pool_end = reinterpret_cast<std::uintptr_t>(pool) + pool_size;
@@ -34,6 +36,8 @@ void *gold_memory::_allocate(size_t size)
 
 void gold_memory::_deallocate(void *block)
 {
+	std::lock_guard lock(mutex);
+
 	auto result = allocated_blocks.find(reinterpret_cast<std::uintptr_t>(block));
 	if (result == allocated_blocks.end())
 		gold_assert("gold_memory::deallocate couldn't find given block");

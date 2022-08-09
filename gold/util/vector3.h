@@ -1,6 +1,6 @@
 #pragma once
 
-#define _NODISCARD [[nodiscard]]
+#include <cstdint>
 
 class gold_vector3
 {
@@ -9,11 +9,16 @@ class gold_vector3
 
 	gold_vector3() = default;
 
-	inline gold_vector3(float _x, float _y, float _z) : x(_x), y(_y), z(_z)
+	gold_vector3(float x, float y, float z) : x(x), y(y), z(z)
 	{
 	}
 
-	_NODISCARD inline gold_vector3 operator+(const gold_vector3 &vec) const
+	float &operator[](std::uint8_t index)
+	{
+		return *(&x + index);
+	}
+
+	gold_vector3 operator+(const gold_vector3 &vec) const
 	{
 		gold_vector3 new_vec;
 
@@ -24,14 +29,14 @@ class gold_vector3
 		return new_vec;
 	}
 
-	inline void operator+=(const gold_vector3 &vec)
+	void operator+=(const gold_vector3 &vec)
 	{
 		x += vec.x;
 		y += vec.y;
 		z += vec.z;
 	}
 
-	_NODISCARD inline gold_vector3 operator-(const gold_vector3 &vec) const
+	gold_vector3 operator-(const gold_vector3 &vec) const
 	{
 		gold_vector3 new_vec;
 
@@ -42,14 +47,14 @@ class gold_vector3
 		return new_vec;
 	}
 
-	inline void operator-=(const gold_vector3 &vec)
+	void operator-=(const gold_vector3 &vec)
 	{
 		x -= vec.x;
 		y -= vec.y;
 		z -= vec.z;
 	}
 
-	_NODISCARD inline gold_vector3 operator*(const gold_vector3 &vec) const
+	gold_vector3 operator*(const gold_vector3 &vec) const
 	{
 		gold_vector3 new_vec;
 
@@ -60,14 +65,14 @@ class gold_vector3
 		return new_vec;
 	}
 
-	inline void operator*=(const gold_vector3 &vec)
+	void operator*=(const gold_vector3 &vec)
 	{
 		x *= vec.x;
 		y *= vec.y;
 		z *= vec.z;
 	}
 
-	_NODISCARD inline gold_vector3 norm() const
+	gold_vector3 norm() const
 	{
 		gold_vector3 vec;
 
@@ -79,7 +84,7 @@ class gold_vector3
 		return vec;
 	}
 
-	_NODISCARD inline gold_vector3 cross(const gold_vector3 &vec) const
+	gold_vector3 cross(const gold_vector3 &vec) const
 	{
 		gold_vector3 new_vec;
 
@@ -90,7 +95,7 @@ class gold_vector3
 		return new_vec;
 	}
 
-	_NODISCARD inline float dot(const gold_vector3 &vec) const
+	float dot(const gold_vector3 &vec) const
 	{
 		return x * vec.x + y * vec.y + z * vec.z;
 	}

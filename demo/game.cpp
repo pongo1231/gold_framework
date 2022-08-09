@@ -5,10 +5,10 @@
 #include "gold/graphics/model/primitives/factory.h"
 #include "gold/graphics/shader.h"
 #include "gold/graphics/shader_program.h"
-#include "gold/memory.h"
 #include "gold/scriptmanager.h"
 #include "gold/util/macros.h"
-#include "gold/util/vector.h"
+#include "gold/util/string.h"
+#include "gold/util/time.h"
 #include "gold/util/vertex.h"
 
 #define WIN32_LEAN_AND_MEAN
@@ -35,7 +35,7 @@ error_code gold_game::init(HINSTANCE inst)
 	graphics_device = std::make_unique<gold_graphicsdevice>();
 
 	camera          = std::make_unique<gold_camera>(graphics_device.get());
-	camera->set_eye({ 0.f, 30.f, -15.f });
+	camera->set_eye({ 0.f, 10.f, -20.f });
 	camera->set_look_at({ 0.f, 0.f, 0.f });
 	camera->set_up({ 0.f, 1.f, 0.f });
 	camera->set_fov(45.f, 1280.f / 720.f);
@@ -46,7 +46,7 @@ error_code gold_game::init(HINSTANCE inst)
 		return error_code;
 
 	plane = gold_factory.create_cube({ 0.f, -2.f, 0.f }, "plane", true);
-	plane->get_model()->set_scale({ 10.f, 1.f, 10.f });
+	plane->get_model()->set_scale({ 100.f, 1.f, 100.f });
 	plane->set_specular_multiplier(0.f);
 	plane->set_shininess(0.f);
 
@@ -54,34 +54,16 @@ error_code gold_game::init(HINSTANCE inst)
 	cube->set_specular_multiplier(1.f);
 	cube->set_shininess(10.f);
 
-	// skybox = std::make_unique<gold_skybox>();
+	skybox = std::make_unique<gold_skybox>();
 
 	for (const auto &script_name : demo_scripts)
 		scriptmanager.register_script(script_name);
 
-	LOG("hi");
-	gold_vector<int> test;
-	LOG("whaddup");
-	test.push(5);
-	LOG("nothing");
-	test.push(7);
-	LOG("lol");
-	test.push(9);
-	for (const auto &element : test)
-		LOG(element);
-	LOG("");
-	test.pop();
-	for (const auto &element : test)
-		LOG(element);
-	LOG("");
-	test.push(8888);
-	test.push(666);
-	for (const auto &element : test)
-		LOG(element);
-	LOG("");
-	test.resize(2);
-	for (const auto &element : test)
-		LOG(element);
+	model = gold_model::load_from_obj("models/cube.obj");
+	model->set_pos({ 0.f, 0.f, -3.f });
+
+	model2 = gold_model::load_from_obj("models/building.obj");
+	model2->set_pos({ 30.f, 0.f, -30.f });
 
 	return error_code::success;
 }
@@ -92,15 +74,15 @@ error_code gold_game::run()
 
 	scriptmanager.execute_script(demo_scripts[demo_current_script_index]);
 
-	/*if (gold_input.is_key_pressed(0x57)) // W
-	    camera->move({ 0.f, 0.f, .1f });
+	if (gold_input.is_key_pressed(0x57)) // W
+		camera->move({ 0.f, 0.f, .1f });
 	else if (gold_input.is_key_pressed(0x53)) // S
-	    camera->move({ 0.f, 0.f, -.1f });
+		camera->move({ 0.f, 0.f, -.1f });
 
 	if (gold_input.is_key_pressed(0x41)) // A
-	    camera->move({ .1f, 0.f, 0.f });
+		camera->move({ .1f, 0.f, 0.f });
 	else if (gold_input.is_key_pressed(0x44)) // D
-	    camera->move({ -.1f, 0.f, 0.f });*/
+		camera->move({ -.1f, 0.f, 0.f });
 
 	if (gold_input.is_key_pressed(VK_CONTROL))
 	{
@@ -123,9 +105,17 @@ error_code gold_game::run()
 	if ((error_code = graphics_device->begin_render()) != error_code::success)
 		return error_code;
 
+	const float radius          = 100.0f;
+	static float rotation_thing = 0.f;
+	rotation_thing += gold_delta_time;
+	float cam_x = sin(rotation_thing) * radius;
+	float cam_z = cos(rotation_thing) * radius;
+	camera->set_look_at({ 0.f, 0.f, 0.f });
+	camera->set_eye({ cam_x, 5.f, cam_z });
+
 	camera->update();
 
-	// skybox->render(camera.get());
+	skybox->render(camera.get());
 
 	// auto the_sin    = 1 + sinf(GetTickCount64() * .001f) * .5f;
 	// auto cube_scale = gold_vector3(2.f * the_sin, 2.f * the_sin, 2.f * the_sin);
@@ -136,6 +126,11 @@ error_code gold_game::run()
 	cube->render(camera.get());
 
 	plane->render(camera.get());
+
+	model->set_pos({ -5.f, -100.f, 100.f });
+	model->render(camera.get());
+
+	// model2->render(camera.get());
 
 	glUseProgram(0);
 
@@ -164,7 +159,7 @@ error_code gold_game::run()
 	return error_code::success;
 }
 
-_NODISCARD gold_camera *gold_game::get_camera() const
+gold_camera *gold_game::get_camera() const
 {
 	return camera.get();
 }

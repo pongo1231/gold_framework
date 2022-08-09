@@ -1,10 +1,9 @@
 #pragma once
 
 #include "gold/graphics/model/model.h"
+#include "gold/memory.h"
 
 #include <memory>
-
-#define _NODISCARD [[nodiscard]]
 
 class gold_vector3;
 class gold_camera;
@@ -20,7 +19,7 @@ class gold_cube
 	gold_cube(const gold_vector3 &pos, bool is_plane = false);
 
 	void render(const gold_camera *camera) const;
-	_NODISCARD gold_model *get_model() const;
+	gold_model *get_model() const;
 
 	void set_specular_multiplier(float spec_multiplier);
 	void set_shininess(float shininess);

@@ -1,8 +1,9 @@
 #pragma once
 
-#include <memory>
+#include "gold/graphics/shader.h"
+#include "gold/memory.h"
 
-#define _NODISCARD [[nodiscard]]
+#include <memory>
 
 using GLuint = unsigned int;
 using GLint  = int;
@@ -31,9 +32,9 @@ class gold_shader_program
 	void bind() const;
 	void unbind() const;
 
-	_NODISCARD GLint get_perspective_uniform_location() const;
-	_NODISCARD GLint get_view_uniform_location() const;
-	_NODISCARD GLint get_model_uniform_location() const;
+	GLint get_perspective_uniform_location() const;
+	GLint get_view_uniform_location() const;
+	GLint get_model_uniform_location() const;
 
 	void set_uniform_vector3(const char *uniform, const gold_vector3 &vector) const;
 	void set_uniform_matrix4(const char *uniform, const gold_matrix4 &matrix) const;

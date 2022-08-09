@@ -1,8 +1,9 @@
 #pragma once
 
-#include <memory>
+#include "gold/memory.h"
 
-#define _NODISCARD [[nodiscard]]
+#include <memory>
+#include <string_view>
 
 using GLuint = unsigned int;
 using GLenum = unsigned int;
@@ -16,7 +17,7 @@ class gold_shader
 	gold_shader(GLuint shader_id);
 	~gold_shader();
 
-	_NODISCARD GLuint get_id() const;
+	GLuint get_id() const;
 
-	_NODISCARD static std::shared_ptr<gold_shader> load_from_file(const char *file, GLenum shader_type);
+	static std::shared_ptr<gold_shader> load_from_file(std::string_view file, GLenum shader_type);
 };

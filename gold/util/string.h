@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gold/util/vector.h"
+#include "gold/memory.h"
 
 #include <string>
 #include <string_view>
@@ -18,9 +18,19 @@ inline void gold_string_trim(std::string &text)
 	}
 
 	text = text.substr(first_index);
-	text = text.substr(0, text.find_last_of(' '));
+	text = text.substr(0, text.find_last_not_of(' ') + 1);
 }
 
-inline gold_vector<std::string> gold_string_split(std::string_view delimiter)
+inline gold_vector<std::string> gold_string_split(std::string_view text, const auto &delimiter)
 {
+	gold_vector<std::string> parts;
+	size_t index_start = 0, index_head = 0;
+	while ((index_start = text.find_first_not_of(delimiter, index_head)) != text.npos)
+	{
+		index_head = text.find(delimiter, index_start);
+		parts.push(
+		    std::string(text.substr(index_start, index_head == text.npos ? text.npos : index_head - index_start)));
+	}
+
+	return parts;
 }

@@ -17,14 +17,14 @@ gold_shader::~gold_shader()
 	glDeleteShader(shader_id);
 }
 
-_NODISCARD GLuint gold_shader::get_id() const
+GLuint gold_shader::get_id() const
 {
 	return shader_id;
 }
 
-_NODISCARD std::shared_ptr<gold_shader> gold_shader::load_from_file(const char *file, GLenum shader_type)
+std::shared_ptr<gold_shader> gold_shader::load_from_file(std::string_view file, GLenum shader_type)
 {
-	std::ifstream shader_file(file);
+	std::ifstream shader_file(file.data());
 	if (shader_file.bad())
 		return nullptr;
 
@@ -38,5 +38,5 @@ _NODISCARD std::shared_ptr<gold_shader> gold_shader::load_from_file(const char *
 	glShaderSource(shader_id, 1, &shader_id_str, 0);
 	glCompileShader(shader_id);
 
-	return std::make_shared<gold_shader>(shader_id);
+	return std::make_unique<gold_shader>(shader_id);
 }

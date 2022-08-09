@@ -4,7 +4,6 @@
 #include "gold/util/macros.h"
 #include "gold/util/matrix.h"
 #include "gold/util/time.h"
-#include "gold/util/vector.h"
 #include "gold/util/vertex.h"
 
 #include <GL/glew.h>
@@ -15,13 +14,13 @@
 
 gold_graphicsdevice::~gold_graphicsdevice()
 {
-	if (gl_ctx)
-		wglDeleteContext(gl_ctx);
+	if (gl_context)
+		wglDeleteContext(gl_context);
 }
 
 error_code gold_graphicsdevice::init(HINSTANCE inst)
 {
-	if (gl_ctx)
+	if (gl_context)
 		return error_code::already_exists;
 
 	WNDCLASSEX wnd_class {};
@@ -35,7 +34,7 @@ error_code gold_graphicsdevice::init(HINSTANCE inst)
 
 	if (FAILED(wnd = CreateWindowEx(NULL, DEMO_CLASSNAME, DEMO_TITLENAME,
 	                                WS_VISIBLE | WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU, CW_USEDEFAULT, CW_USEDEFAULT,
-	                                1280, 720, NULL, NULL, inst, NULL)))
+	                                1600, 900, NULL, NULL, inst, NULL)))
 		return error_code::graphics_init_windowcreate_failed;
 
 	// Taken from https://www.khronos.org/opengl/wiki/Creating_an_OpenGL_Context_(WGL)
@@ -66,15 +65,15 @@ error_code gold_graphicsdevice::init(HINSTANCE inst)
 		                          0,
 		                          0 };
 
-	device_ctx                = GetDC(wnd);
-	auto pixel_fmt            = ChoosePixelFormat(device_ctx, &pfd);
-	SetPixelFormat(device_ctx, pixel_fmt, &pfd);
+	device_context            = GetDC(wnd);
+	auto pixel_fmt            = ChoosePixelFormat(device_context, &pfd);
+	SetPixelFormat(device_context, pixel_fmt, &pfd);
 
-	gl_ctx = wglCreateContext(device_ctx);
-	if (!gl_ctx)
+	gl_context = wglCreateContext(device_context);
+	if (!gl_context)
 		return error_code::graphics_init_graphics_failed;
 
-	if (!wglMakeCurrent(device_ctx, gl_ctx))
+	if (!wglMakeCurrent(device_context, gl_context))
 	{
 		LOG_ERROR("wglMakeCurrent failed!");
 
@@ -126,7 +125,7 @@ error_code gold_graphicsdevice::end_render()
 
 	glUseProgram(0);
 
-	SwapBuffers(device_ctx);
+	SwapBuffers(device_context);
 
 	LARGE_INTEGER timestamp {};
 	QueryPerformanceCounter(&timestamp);
@@ -139,17 +138,17 @@ error_code gold_graphicsdevice::end_render()
 	return error_code::success;
 }
 
-_NODISCARD HGLRC gold_graphicsdevice::get_ctx() const
+HGLRC gold_graphicsdevice::get_context() const
 {
-	return gl_ctx;
+	return gl_context;
 }
 
-_NODISCARD HWND gold_graphicsdevice::get_wnd() const
+HWND gold_graphicsdevice::get_wnd() const
 {
 	return wnd;
 }
 
-_NODISCARD float gold_graphicsdevice::get_last_frame_time() const
+float gold_graphicsdevice::get_last_frame_time() const
 {
 	return last_frame_time;
 }

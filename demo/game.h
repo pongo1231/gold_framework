@@ -5,10 +5,9 @@
 #include "gold/graphics/model/primitives/cube.h"
 #include "gold/graphics/model/primitives/skybox.h"
 #include "gold/input.h"
+#include "gold/memory.h"
 
 #include <memory>
-
-#define _NODISCARD [[nodiscard]]
 
 struct HINSTANCE__;
 typedef HINSTANCE__ *HINSTANCE;
@@ -25,10 +24,13 @@ class gold_game
 
 	gold_cube *plane;
 	gold_cube *cube;
+	std::unique_ptr<gold_skybox> skybox;
+	std::unique_ptr<gold_model> model;
+	std::unique_ptr<gold_model> model2;
 
   public:
 	error_code init(HINSTANCE inst);
 	error_code run();
 
-	_NODISCARD gold_camera *get_camera() const;
+	gold_camera *get_camera() const;
 };

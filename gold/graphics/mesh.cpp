@@ -1,33 +1,33 @@
 #include "mesh.h"
 
+#include "gold/memory.h"
 #include "gold/util/file.h"
 #include "gold/util/macros.h"
 #include "gold/util/string.h"
-#include "gold/util/vector.h"
 #include "gold/util/vector3.h"
 #include "gold/util/vertex.h"
 
 #include <GL/glew.h>
 
-gold_mesh::gold_mesh(const std::vector<gold_vertex> &verts) : verts(verts)
+gold_mesh::gold_mesh(const std::vector<gold_vertex> &vertices) : vertices(vertices)
 {
 	glGenBuffers(1, &vertex_buffer_id);
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_id);
-	glBufferData(GL_ARRAY_BUFFER, verts.size() * sizeof(gold_vertex), verts.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(gold_vertex), vertices.data(), GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-gold_mesh::gold_mesh(const std::vector<gold_vertex> &verts, const std::vector<unsigned short> &ids)
-    : verts(verts), ids(ids), ids_assigned(true)
+gold_mesh::gold_mesh(const std::vector<gold_vertex> &vertices, const std::vector<std::uint32_t> &indices)
+    : vertices(vertices), indices(indices), ids_assigned(true)
 {
 	glGenBuffers(1, &vertex_buffer_id);
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_id);
-	glBufferData(GL_ARRAY_BUFFER, verts.size() * sizeof(gold_vertex), verts.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(gold_vertex), vertices.data(), GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glGenBuffers(1, &index_buffer_id);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer_id);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, ids.size() * sizeof(unsigned short), ids.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(std::uint32_t), indices.data(), GL_STATIC_DRAW);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
@@ -59,9 +59,9 @@ void gold_mesh::render() const
 	glEnableVertexAttribArray(3);
 
 	if (ids_assigned)
-		glDrawElements(is_triangle_strip ? GL_TRIANGLE_STRIP : GL_TRIANGLES, ids.size(), GL_UNSIGNED_SHORT, 0);
+		glDrawElements(is_triangle_strip ? GL_TRIANGLE_STRIP : GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 	else
-		glDrawArrays(is_triangle_strip ? GL_TRIANGLE_STRIP : GL_TRIANGLES, 0, verts.size());
+		glDrawArrays(is_triangle_strip ? GL_TRIANGLE_STRIP : GL_TRIANGLES, 0, vertices.size());
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -79,37 +79,92 @@ void gold_mesh::set_triangle_strip(bool state)
 	is_triangle_strip = state;
 }
 
-gold_mesh *gold_mesh::load_from_obj(std::string_view filename)
+std::unique_ptr<gold_mesh> gold_mesh::load_from_obj(std::string_view filename)
 {
 	if (!gold_file::does_file_exist(filename))
 		return nullptr;
 
-	auto file = gold_file::open_file(filename);
+	auto file = gold_file::open_file(filename, "r");
 	fseek(file.handle, 0, SEEK_END);
 	auto file_size = ftell(file.handle);
 	rewind(file.handle);
 
 	std::string buffer;
-	buffer.reserve(file_size);
+	buffer.resize(file_size);
 	fread(buffer.data(), sizeof(char), file_size, file.handle);
 
-	gold_vector<gold_vector3> vertices;
-	gold_vector<gold_vector3> indices;
+	std::vector<gold_vector3> vertex_positions;
+	std::vector<gold_vector3> vertex_normals;
+	std::vector<std::uint32_t> indices;
 
-	size_t index = 0;
-	while ((index = buffer.find('\n', index)) != buffer.npos)
+	for (auto &line : gold_string_split(buffer, '\n'))
 	{
-		auto line = buffer.substr(0, index + 1);
 		gold_string_trim(line);
 		if (line.empty())
 			continue;
 
-		if (line[0] == 'v')
+		const auto &values = gold_string_split(line, ' ');
+		if (values[0] == "v")
+			vertex_positions.emplace_back(std::stof(values[1]), std::stof(values[2]), std::stof(values[3]));
+		else if (values[0] == "vn")
+			vertex_normals.emplace_back(std::stof(values[1]), std::stof(values[2]), std::stof(values[3]));
+		else if (values[0] == "f")
 		{
-			float x = 0.f, y = 0.f, z = 0.f;
-			size_t vert_index = 0;
+			gold_vector3 this_indices;
+			std::uint8_t count = 0;
+			for (size_t i = 1; i < values.size(); i++)
+			{
+				const auto &index_values = gold_string_split(values[i], '/');
+				this_indices[count++]    = std::stoi(index_values[0]);
 
-			auto vert         = line.substr(line.find_first_not_of());
+				if (count == 3)
+				{
+					indices.push_back(this_indices.x);
+					indices.push_back(this_indices.y);
+					indices.push_back(this_indices.z);
+
+					this_indices.x = this_indices.y;
+					this_indices.y = this_indices.z;
+					count          = 2;
+				}
+			}
 		}
 	}
+
+	/*LOG("Vertices:");
+	for (const auto &vertex : vertex_positions)
+	    LOG(vertex.x << " " << vertex.y << " " << vertex.z);
+
+	LOG("Normals:");
+	for (const auto &normal : vertex_normals)
+	    LOG(normal.x << " " << normal.y << " " << normal.z);*/
+
+	/*LOG("Indices:");
+	for (const auto &index : indices)
+	    LOG(index.x << " " << index.y << " " << index.z);
+	for (const auto &index : indices)
+	    LOG(index);*/
+
+	std::vector<gold_vertex> vertices;
+	for (size_t i = 0; i < vertex_positions.size(); i++)
+	{
+		const auto &vertex_pos = vertex_positions[i];
+
+		gold_vertex vertex;
+		vertex.pos_x = vertex_pos.x;
+		vertex.pos_y = vertex_pos.y;
+		vertex.pos_z = vertex_pos.z;
+
+		if (vertex_normals.size() > i)
+		{
+			const auto &vertex_normal = vertex_normals[i];
+			vertex.norm_x             = vertex_normal.x;
+			vertex.norm_y             = vertex_normal.y;
+			vertex.norm_z             = vertex_normal.z;
+		}
+
+		vertices.push_back(vertex);
+	}
+
+	return std::make_unique<gold_mesh>(vertices, indices);
 }

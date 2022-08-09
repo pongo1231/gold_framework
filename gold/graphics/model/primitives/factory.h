@@ -1,12 +1,14 @@
 #pragma once
 
 #include "gold/graphics/model/primitives/cube.h"
+#include "gold/memory.h"
 #include "gold/util/macros.h"
+#include "gold/util/vector3.h"
 
-#include <memory>
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <memory>
 
 class gold_factory
 {
@@ -15,9 +17,9 @@ class gold_factory
   public:
 	gold_cube *create_cube(const gold_vector3 &pos, const std::string &name, bool is_plane = false);
 
-	_NODISCARD gold_cube *get_object(const std::string &name) const;
+	gold_cube *get_object(const std::string &name) const;
 
-	_NODISCARD const auto &get_objects() const;
+	const auto &get_objects() const;
 };
 
 inline gold_factory gold_factory;

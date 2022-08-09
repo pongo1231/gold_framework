@@ -12,7 +12,7 @@ gold_cube *gold_factory::create_cube(const gold_vector3 &pos, const std::string 
 	return objects_pool.at(name).get();
 }
 
-_NODISCARD gold_cube *gold_factory::get_object(const std::string &name) const
+gold_cube *gold_factory::get_object(const std::string &name) const
 {
 	return objects_pool.contains(name) ? objects_pool.at(name).get() : nullptr;
 }

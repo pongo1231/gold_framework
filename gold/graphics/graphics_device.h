@@ -4,16 +4,14 @@
 #include <GL/glew.h>
 #include <windows.h>
 
-#define _NODISCARD [[nodiscard]]
-
 enum class error_code;
 
 class gold_graphicsdevice
 {
   private:
-	HWND wnd       = NULL;
-	HDC device_ctx = NULL;
-	HGLRC gl_ctx   = NULL;
+	HWND wnd           = NULL;
+	HDC device_context = NULL;
+	HGLRC gl_context   = NULL;
 	MSG msg {};
 	LARGE_INTEGER last_frame_timestamp {};
 	float last_frame_time = 0.f;
@@ -27,9 +25,9 @@ class gold_graphicsdevice
 	error_code begin_render();
 	error_code end_render();
 
-	_NODISCARD HGLRC get_ctx() const;
-	_NODISCARD HWND get_wnd() const;
-	_NODISCARD float get_last_frame_time() const;
+	HGLRC get_context() const;
+	HWND get_wnd() const;
+	float get_last_frame_time() const;
 
   private:
 	static LRESULT CALLBACK wnd_proc(HWND wnd, UINT msg, WPARAM param1, LPARAM param2);
