@@ -115,7 +115,7 @@ static int lua_key_just_pressed(lua_State *lua)
 	return 1;
 }
 
-static void register_functions(lua_State *lua, std::string_view filename)
+static void register_functions(lua_State *lua, const gold_string &filename)
 {
 	lua_pushcfunction(lua, lua_print);
 	lua_setglobal(lua, "print");
@@ -185,7 +185,7 @@ void scriptmanager::register_script(std::string_view filename)
 	if (error)
 		return;
 
-	script_states.push_back(script { .script_name = std::string(filename), .lua = lua });
+	script_states.push(script { .script_name = std::string(filename), .lua = lua });
 }
 
 void scriptmanager::unregister_script(std::string_view filename)
@@ -195,7 +195,7 @@ void scriptmanager::unregister_script(std::string_view filename)
 		if (*it == filename)
 		{
 			LOG("Unregistered script " << filename);
-			it = script_states.erase(it);
+			it = script_states.erase_element(it);
 			return;
 		}
 		else

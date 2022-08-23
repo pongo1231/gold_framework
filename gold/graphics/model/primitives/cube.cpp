@@ -9,18 +9,17 @@
 #include "gold/util/vertex.h"
 
 #include <GL/glew.h>
-#include <vector>
 
-static const std::vector<gold_vertex> cube_vertices = {
-	{ -1.f, 1.f, -1.f, 0.f, 1.f, 0.f, 0.4f, 0.f, 1.f, 0.f, 1.f, 0.f },
-	{ 1.f, 1.f, -1.f, 1.f, 1.f, 0.f, 0.4f, 0.f, 1.f, 0.f, 1.f, 0.f },
-	{ -1.f, 1.f, 1.f, 0.f, 0.f, 0.f, 0.4f, 0.f, 1.f, 0.f, 1.f, 0.f },
-	{ 1.f, 1.f, 1.f, 1.f, 0.f, 0.f, 0.4f, 0.f, 1.f, 0.f, 1.f, 0.f },
+static const gold_vector<gold_vertex> cube_vertices = {
+	{ -1.f, 1.f, -1.f, 0.f, 1.f, 0.f, 0.4f, 0.5f, 1.f, 0.f, 1.f, 0.f },
+	{ 1.f, 1.f, -1.f, 1.f, 1.f, 0.f, 0.4f, 0.5f, 1.f, 0.f, 1.f, 0.f },
+	{ -1.f, 1.f, 1.f, 0.f, 0.f, 0.f, 0.4f, 0.5f, 1.f, 0.f, 1.f, 0.f },
+	{ 1.f, 1.f, 1.f, 1.f, 0.f, 0.f, 0.4f, 0.1f, 1.f, 0.f, 1.f, 0.f },
 
-	{ -1.f, -1.f, -1.f, 1.f, 0.f, 0.f, 0.4f, 0.f, 1.f, 0.f, -1.f, 0.f },
-	{ 1.f, -1.f, -1.f, 0.f, 0.f, 0.f, 0.4f, 0.f, 1.f, 0.f, -1.f, 0.f },
-	{ -1.f, -1.f, 1.f, 1.f, 1.f, 0.f, 0.4f, 0.f, 1.f, 0.f, -1.f, 0.f },
-	{ 1.f, -1.f, 1.f, 0.f, 1.f, 0.f, 0.4f, 0.f, 1.f, 0.f, -1.f, 0.f },
+	{ -1.f, -1.f, -1.f, 1.f, 0.f, 0.1f, 0.4f, 0.f, 1.f, 0.f, -1.f, 0.f },
+	{ 1.f, -1.f, -1.f, 0.f, 0.f, 0.5f, 0.4f, 0.f, 1.f, 0.f, -1.f, 0.f },
+	{ -1.f, -1.f, 1.f, 1.f, 1.f, 0.5f, 0.4f, 0.f, 1.f, 0.f, -1.f, 0.f },
+	{ 1.f, -1.f, 1.f, 0.f, 1.f, 0.5f, 0.4f, 0.f, 1.f, 0.f, -1.f, 0.f },
 
 	{ 1.f, 1.f, 1.f, 0.f, 1.f, 0.f, 0.4f, 0.f, 1.f, 1.f, 0.f, 0.f },
 	{ 1.f, 1.f, -1.f, 1.f, 1.f, 0.f, 0.4f, 0.f, 1.f, 1.f, 0.f, 0.f },
@@ -32,18 +31,18 @@ static const std::vector<gold_vertex> cube_vertices = {
 	{ -1.f, -1.f, 1.f, 0.f, 0.f, 0.f, 0.4f, 0.f, 1.f, -1.f, 0.f, 0.f },
 	{ -1.f, -1.f, -1.f, 1.f, 0.f, 0.f, 0.4f, 0.f, 1.f, -1.f, 0.f, 0.f },
 
-	{ -1.f, 1.f, 1.f, 0.f, 1.f, 0.f, 0.4f, 0.f, 1.f, 0.f, 0.f, 1.f },
-	{ 1.f, 1.f, 1.f, 1.f, 1.f, 0.f, 0.4f, 0.f, 1.f, 0.f, 0.f, 1.f },
-	{ -1.f, -1.f, 1.f, 0.f, 0.f, 0.f, 0.4f, 0.f, 1.f, 0.f, 0.f, 1.f },
-	{ 1.f, -1.f, 1.f, 1.f, 0.f, 0.f, 0.4f, 0.f, 1.f, 0.f, 0.f, 1.f },
+	{ -1.f, 1.f, 1.f, 0.f, 1.f, 0.f, 0.4f, 0.4f, 1.f, 0.f, 0.f, 1.f },
+	{ 1.f, 1.f, 1.f, 1.f, 1.f, 0.f, 0.4f, 0.4f, 1.f, 0.f, 0.f, 1.f },
+	{ -1.f, -1.f, 1.f, 0.f, 0.f, 0.f, 0.4f, 0.4f, 1.f, 0.f, 0.f, 1.f },
+	{ 1.f, -1.f, 1.f, 1.f, 0.f, 0.f, 0.4f, 0.4f, 1.f, 0.f, 0.f, 1.f },
 
-	{ -1.f, 1.f, -1.f, 1.f, 0.f, 0.f, 0.4f, 0.f, 1.f, 0.f, 0.f, -1.f },
-	{ 1.f, 1.f, -1.f, 0.f, 0.f, 0.f, 0.4f, 0.f, 1.f, 0.f, 0.f, -1.f },
-	{ -1.f, -1.f, -1.f, 1.f, 1.f, 0.f, 0.4f, 0.f, 1.f, 0.f, 0.f, -1.f },
-	{ 1.f, -1.f, -1.f, 0.f, 1.f, 0.f, 0.4f, 0.f, 1.f, 0.f, 0.f, -1.f },
+	{ -1.f, 1.f, -1.f, 1.f, 0.f, 0.4f, 0.4f, 0.f, 1.f, 0.f, 0.f, -1.f },
+	{ 1.f, 1.f, -1.f, 0.f, 0.f, 0.4f, 0.4f, 0.f, 1.f, 0.f, 0.f, -1.f },
+	{ -1.f, -1.f, -1.f, 1.f, 1.f, 0.4f, 0.4f, 0.f, 1.f, 0.f, 0.f, -1.f },
+	{ 1.f, -1.f, -1.f, 0.f, 1.f, 0.4f, 0.4f, 0.f, 1.f, 0.f, 0.f, -1.f },
 };
 
-static const std::vector<std::uint32_t> cube_indices = { 8,  9,  10, 9,  11, 10,
+static const gold_vector<std::uint32_t> cube_indices = { 8,  9,  10, 9,  11, 10,
 
 	                                                     14, 13, 12, 14, 15, 13,
 
@@ -57,15 +56,15 @@ static const std::vector<std::uint32_t> cube_indices = { 8,  9,  10, 9,  11, 10,
 
 gold_cube::gold_cube(const gold_vector3 &pos, bool is_plane)
 {
-	auto cube_mesh = std::make_unique<gold_mesh>(cube_vertices, cube_indices);
+	auto cube_mesh = gold_unique_ptr<gold_mesh>::create(cube_vertices, cube_indices);
 	cube_mesh->set_triangle_strip(true);
 	auto cube_vert_shader = gold_shader::load_from_file("shaders/cube_vert.glsl", GL_VERTEX_SHADER);
-	std::shared_ptr<gold_shader> cube_frag_shader;
+	gold_ref_ptr<gold_shader> cube_frag_shader;
 	if (is_plane)
 		cube_frag_shader = gold_shader::load_from_file("shaders/plane_frag.glsl", GL_FRAGMENT_SHADER);
 	else
 		cube_frag_shader = gold_shader::load_from_file("shaders/cube_frag.glsl", GL_FRAGMENT_SHADER);
-	auto cube_shader_program = std::make_unique<gold_shader_program>(cube_vert_shader, cube_frag_shader);
+	auto cube_shader_program = gold_unique_ptr<gold_shader_program>::create(cube_vert_shader, cube_frag_shader);
 
 	cube_shader_program->bind();
 	cube_shader_program->set_uniform_vector3("uni_light_pos", { 0.f, 0.f, 0.f });
@@ -75,7 +74,7 @@ gold_cube::gold_cube(const gold_vector3 &pos, bool is_plane)
 	cube_shader_program->set_uniform_float("uni_shininess", shininess);
 	cube_shader_program->unbind();
 
-	model = std::make_unique<gold_model>(cube_mesh, cube_shader_program);
+	model = gold_unique_ptr<gold_model>::create(cube_mesh, cube_shader_program);
 	// mod->set_tex(new gol_tex("imgs/tex.png"));
 	model->set_pos(pos);
 }
@@ -92,7 +91,7 @@ void gold_cube::render(const gold_camera *camera) const
 
 gold_model *gold_cube::get_model() const
 {
-	return model.get();
+	return model.handle();
 }
 
 void gold_cube::set_specular_multiplier(float spec_multiplier)

@@ -7,8 +7,7 @@
 
 #include <GL/glew.h>
 
-gold_shader_program::gold_shader_program(std::shared_ptr<gold_shader> vert_shader,
-                                         std::shared_ptr<gold_shader> frag_shader)
+gold_shader_program::gold_shader_program(gold_ref_ptr<gold_shader> vert_shader, gold_ref_ptr<gold_shader> frag_shader)
     : vert_shader(vert_shader), frag_shader(frag_shader)
 {
 	program_id = glCreateProgram();
@@ -89,4 +88,13 @@ void gold_shader_program::set_uniform_float(const char *uniform, float value) co
 		return;
 
 	glUniform1f(uniform_location, value);
+}
+
+void gold_shader_program::set_uniform_longint(const char *uniform, long value) const
+{
+	auto uniform_location = glGetUniformLocation(program_id, uniform);
+	if (!uniform_location)
+		return;
+
+	glUniform1i(uniform_location, value);
 }

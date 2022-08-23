@@ -1,6 +1,6 @@
 // Der Shader ist an Code-Auszügen von https://learnopengl.com/Lighting/Basic-Lighting angelehnt
 
-#version 400
+#version 460
 
 // Unsere fragment Farbe
 in vec4 p_col;
@@ -23,5 +23,5 @@ in vec3 p_cam_pos;
 
 void main(void)
 {
-    o_col = vec4(0.5, 0.5, 0.5, 1.0);
+    o_col = vec4(0.5, 0.5, 0.6, 1.0);
 }

@@ -1,9 +1,10 @@
-#version 400
+#version 460
 
 layout(location=0) in vec3 i_pos;
 layout(location=1) in vec2 i_uv;
 layout(location=2) in vec4 i_col;
 layout(location=3) in vec3 i_norm;
+out vec2 p_uv;
 out vec4 p_col;
 out vec3 p_norm;
 
@@ -33,6 +34,8 @@ out vec3 p_cam_pos;
 void main(void)
 {
     gl_Position = uniform_matrix_perspective * uniform_matrix_view * uniform_matrix_model * vec4(i_pos, 1.0);
+
+    p_uv = i_uv;
 
     p_col = i_col;
     p_norm = mat3(transpose(inverse(uniform_matrix_model))) * i_norm;

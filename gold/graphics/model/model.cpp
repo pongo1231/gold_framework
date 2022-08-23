@@ -11,7 +11,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-gold_model::gold_model(std::unique_ptr<gold_mesh> &mesh, std::unique_ptr<gold_shader_program> &shader_program)
+gold_model::gold_model(gold_unique_ptr<gold_mesh> &mesh, gold_unique_ptr<gold_shader_program> &shader_program)
     : mesh(std::move(mesh)), shader_program(std::move(shader_program))
 {
 }
@@ -32,7 +32,7 @@ void gold_model::render(const gold_camera *camera) const
 	glUniformMatrix4fv(shader_program->get_model_uniform_location(), 1, GL_FALSE, glm::value_ptr(matrix));
 
 	if (texture)
-		texture->bind();
+		texture->bind(*shader_program.handle());
 
 	mesh->render();
 
@@ -44,10 +44,10 @@ void gold_model::render(const gold_camera *camera) const
 
 const gold_shader_program *gold_model::get_shader_program() const
 {
-	return shader_program.get();
+	return shader_program.handle();
 }
 
-void gold_model::set_texture(const std::shared_ptr<gold_texture> texture)
+void gold_model::set_texture(gold_ref_ptr<gold_texture> texture)
 {
 	this->texture = texture;
 }
@@ -88,24 +88,24 @@ void gold_model::set_scale(const gold_vector3 &_scale)
 	m_scale = _scale;
 }
 
-std::unique_ptr<gold_model> gold_model::load_from_obj(std::string_view filename)
+gold_unique_ptr<gold_model> gold_model::load_from_obj(std::string_view filename)
 {
 	if (!gold_file::does_file_exist(filename))
 		return nullptr;
 
-	auto mesh                = gold_mesh::load_from_obj(filename);
+	auto mesh           = gold_mesh::load_from_obj(filename);
 
-	auto cube_vert_shader    = gold_shader::load_from_file("shaders/cube_vert.glsl", GL_VERTEX_SHADER);
-	auto cube_frag_shader    = gold_shader::load_from_file("shaders/cube_frag.glsl", GL_FRAGMENT_SHADER);
-	auto cube_shader_program = std::make_unique<gold_shader_program>(cube_vert_shader, cube_frag_shader);
+	auto vert_shader    = gold_shader::load_from_file("shaders/cube_vert.glsl", GL_VERTEX_SHADER);
+	auto frag_shader    = gold_shader::load_from_file("shaders/cube_frag.glsl", GL_FRAGMENT_SHADER);
+	auto shader_program = gold_unique_ptr<gold_shader_program>::create(vert_shader, frag_shader);
 
-	cube_shader_program->bind();
-	cube_shader_program->set_uniform_vector3("uni_light_pos", { 0.f, 0.f, 0.f });
-	cube_shader_program->set_uniform_vector3("uni_light_col", { .0f, .5f, .5f });
-	cube_shader_program->set_uniform_float("uni_ambient_modifier", .9f);
-	cube_shader_program->set_uniform_float("uni_spec_modifier", 1.f);
-	cube_shader_program->set_uniform_float("uni_shininess", 10.f);
-	cube_shader_program->unbind();
+	shader_program->bind();
+	shader_program->set_uniform_vector3("uni_light_pos", { 0.f, 0.f, 0.f });
+	shader_program->set_uniform_vector3("uni_light_col", { 1.f, 1.f, 1.f });
+	shader_program->set_uniform_float("uni_ambient_modifier", .9f);
+	shader_program->set_uniform_float("uni_spec_modifier", 0.f);
+	shader_program->set_uniform_float("uni_shininess", 10.f);
+	shader_program->unbind();
 
-	return std::make_unique<gold_model>(mesh, cube_shader_program);
+	return gold_unique_ptr<gold_model>::create(mesh, shader_program);
 }

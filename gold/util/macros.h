@@ -2,10 +2,8 @@
 
 #include <iostream>
 
-#define DEMO_CLASSNAME TEXT("framework")
-#define DEMO_TITLENAME TEXT("Framework")
+#define DEMO_CLASSNAME TEXT("gold_framework")
+#define DEMO_TITLENAME TEXT("Gold Game")
 
 #define LOG(x) std::cout << x << "\n"
 #define LOG_ERROR(x) LOG("Error: " << x)
-
-#define _NODISCARD [[nodiscard]]

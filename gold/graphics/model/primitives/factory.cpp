@@ -8,13 +8,13 @@ gold_cube *gold_factory::create_cube(const gold_vector3 &pos, const std::string 
 		return nullptr;
 	}
 
-	objects_pool[name] = std::make_unique<gold_cube>(pos, is_plane);
-	return objects_pool.at(name).get();
+	objects_pool[name] = gold_unique_ptr<gold_cube>::create(pos, is_plane);
+	return objects_pool.at(name).handle();
 }
 
 gold_cube *gold_factory::get_object(const std::string &name) const
 {
-	return objects_pool.contains(name) ? objects_pool.at(name).get() : nullptr;
+	return objects_pool.contains(name) ? objects_pool.at(name).handle() : nullptr;
 }
 
 const auto &gold_factory::get_objects() const

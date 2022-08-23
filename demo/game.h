@@ -7,8 +7,6 @@
 #include "gold/input.h"
 #include "gold/memory.h"
 
-#include <memory>
-
 struct HINSTANCE__;
 typedef HINSTANCE__ *HINSTANCE;
 
@@ -17,16 +15,16 @@ enum class error_code;
 class gold_game
 {
   private:
-	std::unique_ptr<gold_graphicsdevice> graphics_device;
-	std::unique_ptr<gold_camera> camera;
+	gold_unique_ptr<gold_graphicsdevice> graphics_device;
+	gold_unique_ptr<gold_camera> camera;
 
 	bool did_init = false;
 
 	gold_cube *plane;
 	gold_cube *cube;
-	std::unique_ptr<gold_skybox> skybox;
-	std::unique_ptr<gold_model> model;
-	std::unique_ptr<gold_model> model2;
+	gold_unique_ptr<gold_skybox> skybox;
+	gold_unique_ptr<gold_model> model;
+	gold_unique_ptr<gold_model> model2;
 
   public:
 	error_code init(HINSTANCE inst);

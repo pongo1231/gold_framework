@@ -3,13 +3,14 @@
 #include "gold/memory.h"
 #include "gold/util/file.h"
 #include "gold/util/macros.h"
+#include "gold/util/random.h"
 #include "gold/util/string.h"
 #include "gold/util/vector3.h"
 #include "gold/util/vertex.h"
 
 #include <GL/glew.h>
 
-gold_mesh::gold_mesh(const std::vector<gold_vertex> &vertices) : vertices(vertices)
+gold_mesh::gold_mesh(const gold_vector<gold_vertex> &vertices) : vertices(vertices)
 {
 	glGenBuffers(1, &vertex_buffer_id);
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_id);
@@ -17,7 +18,7 @@ gold_mesh::gold_mesh(const std::vector<gold_vertex> &vertices) : vertices(vertic
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-gold_mesh::gold_mesh(const std::vector<gold_vertex> &vertices, const std::vector<std::uint32_t> &indices)
+gold_mesh::gold_mesh(const gold_vector<gold_vertex> &vertices, const gold_vector<std::uint32_t> &indices)
     : vertices(vertices), indices(indices), ids_assigned(true)
 {
 	glGenBuffers(1, &vertex_buffer_id);
@@ -79,7 +80,7 @@ void gold_mesh::set_triangle_strip(bool state)
 	is_triangle_strip = state;
 }
 
-std::unique_ptr<gold_mesh> gold_mesh::load_from_obj(std::string_view filename)
+gold_unique_ptr<gold_mesh> gold_mesh::load_from_obj(std::string_view filename)
 {
 	if (!gold_file::does_file_exist(filename))
 		return nullptr;
@@ -89,43 +90,58 @@ std::unique_ptr<gold_mesh> gold_mesh::load_from_obj(std::string_view filename)
 	auto file_size = ftell(file.handle);
 	rewind(file.handle);
 
-	std::string buffer;
+	gold_string buffer;
 	buffer.resize(file_size);
-	fread(buffer.data(), sizeof(char), file_size, file.handle);
+	fread(buffer.c_string(), sizeof(char), file_size, file.handle);
 
-	std::vector<gold_vector3> vertex_positions;
-	std::vector<gold_vector3> vertex_normals;
-	std::vector<std::uint32_t> indices;
+	gold_vector<gold_vector3> vertex_positions;
+	gold_vector<std::uint32_t> vertex_indices;
+	gold_vector<gold_vector3> vertex_normals;
+	gold_vector<std::uint32_t> normal_indices;
 
-	for (auto &line : gold_string_split(buffer, '\n'))
+	for (auto &line : buffer.split('\n'))
 	{
-		gold_string_trim(line);
-		if (line.empty())
+		line = line.trim();
+		if (line.is_empty())
 			continue;
 
-		const auto &values = gold_string_split(line, ' ');
+		const auto &values = line.split(' ');
 		if (values[0] == "v")
-			vertex_positions.emplace_back(std::stof(values[1]), std::stof(values[2]), std::stof(values[3]));
+			vertex_positions.emplace(std::stof(values[1].c_string()), std::stof(values[2].c_string()),
+			                         std::stof(values[3].c_string()));
 		else if (values[0] == "vn")
-			vertex_normals.emplace_back(std::stof(values[1]), std::stof(values[2]), std::stof(values[3]));
+			vertex_normals.emplace(std::stof(values[1].c_string()), std::stof(values[2].c_string()),
+			                       std::stof(values[3].c_string()));
 		else if (values[0] == "f")
 		{
-			gold_vector3 this_indices;
-			std::uint8_t count = 0;
-			for (size_t i = 1; i < values.size(); i++)
+			gold_vector3 this_vertex_indices;
+			gold_vector3 this_normal_indices;
+			for (std::uint8_t i = 1; i < values.size(); i++)
 			{
-				const auto &index_values = gold_string_split(values[i], '/');
-				this_indices[count++]    = std::stoi(index_values[0]);
+				const auto &index_values                = values[i].split('/');
 
-				if (count == 3)
+				this_vertex_indices[std::min(i - 1, 2)] = std::stoi(index_values[0].c_string()) - 1;
+
+				if (i > 2)
 				{
-					indices.push_back(this_indices.x);
-					indices.push_back(this_indices.y);
-					indices.push_back(this_indices.z);
+					vertex_indices.push(this_vertex_indices.x);
+					vertex_indices.push(this_vertex_indices.y);
+					vertex_indices.push(this_vertex_indices.z);
 
-					this_indices.x = this_indices.y;
-					this_indices.y = this_indices.z;
-					count          = 2;
+					this_vertex_indices.x = std::stoi(values[std::max(1, i - 3)].c_string()) - 1;
+					this_vertex_indices.y = this_vertex_indices.z;
+				}
+
+				this_normal_indices[std::min(i - 1, 2)] = std::stoi(index_values[2].c_string()) - 1;
+
+				if (i > 2)
+				{
+					normal_indices.push(this_normal_indices.x);
+					normal_indices.push(this_normal_indices.y);
+					normal_indices.push(this_normal_indices.z);
+
+					this_normal_indices.x = std::stoi(values[std::max(1, i - 3)].c_string()) - 1;
+					this_normal_indices.y = this_normal_indices.z;
 				}
 			}
 		}
@@ -133,19 +149,17 @@ std::unique_ptr<gold_mesh> gold_mesh::load_from_obj(std::string_view filename)
 
 	/*LOG("Vertices:");
 	for (const auto &vertex : vertex_positions)
-	    LOG(vertex.x << " " << vertex.y << " " << vertex.z);
+	    LOG(vertex.x << " " << vertex.y << " " << vertex.z);*/
 
-	LOG("Normals:");
+	/*LOG("Normals:");
 	for (const auto &normal : vertex_normals)
 	    LOG(normal.x << " " << normal.y << " " << normal.z);*/
 
 	/*LOG("Indices:");
 	for (const auto &index : indices)
-	    LOG(index.x << " " << index.y << " " << index.z);
-	for (const auto &index : indices)
 	    LOG(index);*/
 
-	std::vector<gold_vertex> vertices;
+	gold_vector<gold_vertex> vertices;
 	for (size_t i = 0; i < vertex_positions.size(); i++)
 	{
 		const auto &vertex_pos = vertex_positions[i];
@@ -155,16 +169,21 @@ std::unique_ptr<gold_mesh> gold_mesh::load_from_obj(std::string_view filename)
 		vertex.pos_y = vertex_pos.y;
 		vertex.pos_z = vertex_pos.z;
 
-		if (vertex_normals.size() > i)
+		if (normal_indices.size() > i)
 		{
-			const auto &vertex_normal = vertex_normals[i];
-			vertex.norm_x             = vertex_normal.x;
-			vertex.norm_y             = vertex_normal.y;
-			vertex.norm_z             = vertex_normal.z;
+			auto normal_index = normal_indices[i];
+			vertex.norm_x     = vertex_normals[normal_index].x;
+			vertex.norm_y     = vertex_normals[normal_index].y;
+			vertex.norm_z     = vertex_normals[normal_index].z;
 		}
 
-		vertices.push_back(vertex);
+		vertex.col_a = 0.f;
+		vertex.col_r = gold_random.random_float(0.f, 1.f);
+		vertex.col_b = gold_random.random_float(0.f, 1.f);
+		vertex.col_g = 0.f;
+
+		vertices.push(vertex);
 	}
 
-	return std::make_unique<gold_mesh>(vertices, indices);
+	return gold_unique_ptr<gold_mesh>::create(vertices, vertex_indices);
 }

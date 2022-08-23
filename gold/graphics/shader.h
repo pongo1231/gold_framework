@@ -2,7 +2,6 @@
 
 #include "gold/memory.h"
 
-#include <memory>
 #include <string_view>
 
 using GLuint = unsigned int;
@@ -19,5 +18,5 @@ class gold_shader
 
 	GLuint get_id() const;
 
-	static std::shared_ptr<gold_shader> load_from_file(std::string_view file, GLenum shader_type);
+	static gold_ref_ptr<gold_shader> load_from_file(std::string_view file, GLenum shader_type);
 };

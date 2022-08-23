@@ -8,9 +8,8 @@
 #include "gold/util/vertex.h"
 
 #include <GL/glew.h>
-#include <vector>
 
-static const std::vector<gold_vertex> sky_vertices = {
+static const gold_vector<gold_vertex> sky_vertices = {
 	{ -1.f, 1.f, -1.f, 0.f, 0.f, 0.5f, 0.5f, 0.9f, 1.f },  // 0
 	{ -1.f, -1.f, -1.f, 1.f, 0.f, 0.3f, 0.3f, 0.4f, 1.f }, // 1
 	{ 1.f, -1.f, -1.f, 1.f, 1.f, 0.3f, 0.3f, 0.4f, 1.f },  // 2
@@ -24,7 +23,7 @@ static const std::vector<gold_vertex> sky_vertices = {
 	{ 1.f, 1.f, 1.f, 1.f, 1.f, 0.5f, 0.5f, 0.9f, 1.f },  // 8
 };
 
-static const std::vector<std::uint32_t> sky_indices = { 0, 1, 2, 2, 5, 0,
+static const gold_vector<std::uint32_t> sky_indices = { 0, 1, 2, 2, 5, 0,
 
 	                                                    4, 1, 3, 3, 6, 4,
 
@@ -38,12 +37,12 @@ static const std::vector<std::uint32_t> sky_indices = { 0, 1, 2, 2, 5, 0,
 
 gold_skybox::gold_skybox()
 {
-	auto mesh           = std::make_unique<gold_mesh>(sky_vertices, sky_indices);
+	auto mesh           = gold_unique_ptr<gold_mesh>::create(sky_vertices, sky_indices);
 	auto vert_shader    = gold_shader::load_from_file("shaders/sky_vert.glsl", GL_VERTEX_SHADER);
 	auto frag_shader    = gold_shader::load_from_file("shaders/sky_frag.glsl", GL_FRAGMENT_SHADER);
-	auto shader_program = std::make_unique<gold_shader_program>(vert_shader, frag_shader);
+	auto shader_program = gold_unique_ptr<gold_shader_program>::create(vert_shader, frag_shader);
 
-	model               = std::make_unique<gold_model>(mesh, shader_program);
+	model               = gold_unique_ptr<gold_model>::create(mesh, shader_program);
 }
 
 void gold_skybox::render(const gold_camera *camera) const
@@ -60,5 +59,5 @@ void gold_skybox::render(const gold_camera *camera) const
 
 gold_model *gold_skybox::get_model() const
 {
-	return model.get();
+	return model.handle();
 }

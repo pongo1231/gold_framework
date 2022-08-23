@@ -5,6 +5,7 @@
 #include "gold/graphics/model/primitives/factory.h"
 #include "gold/graphics/shader.h"
 #include "gold/graphics/shader_program.h"
+#include "gold/graphics/texture.h"
 #include "gold/scriptmanager.h"
 #include "gold/util/macros.h"
 #include "gold/util/string.h"
@@ -21,20 +22,21 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#include <vector>
 
-static std::vector<std::string> demo_scripts = { "scripts/pingpong.lua", "scripts/circle.lua", "scripts/random.lua",
+static gold_vector<gold_string> demo_scripts = { "scripts/pingpong.lua", "scripts/circle.lua", "scripts/random.lua",
 	                                             "scripts/playerinput.lua" };
 static size_t demo_current_script_index      = 0;
+
+auto texture                                 = gold_ref_ptr<gold_texture>::create("textures/test.bmp");
 
 error_code gold_game::init(HINSTANCE inst)
 {
 	if (did_init)
 		return error_code::already_run;
 
-	graphics_device = std::make_unique<gold_graphicsdevice>();
+	graphics_device = gold_unique_ptr<gold_graphicsdevice>::create();
 
-	camera          = std::make_unique<gold_camera>(graphics_device.get());
+	camera          = gold_unique_ptr<gold_camera>::create(graphics_device.handle());
 	camera->set_eye({ 0.f, 10.f, -20.f });
 	camera->set_look_at({ 0.f, 0.f, 0.f });
 	camera->set_up({ 0.f, 1.f, 0.f });
@@ -46,24 +48,26 @@ error_code gold_game::init(HINSTANCE inst)
 		return error_code;
 
 	plane = gold_factory.create_cube({ 0.f, -2.f, 0.f }, "plane", true);
-	plane->get_model()->set_scale({ 100.f, 1.f, 100.f });
+	plane->get_model()->set_scale({ 10.f, 1.f, 10.f });
 	plane->set_specular_multiplier(0.f);
 	plane->set_shininess(0.f);
+	plane->get_model()->set_texture(texture);
 
 	cube = gold_factory.create_cube({ 0.f, 0.f, -3.f }, "cube");
 	cube->set_specular_multiplier(1.f);
 	cube->set_shininess(10.f);
+	cube->get_model()->set_texture(texture);
 
-	skybox = std::make_unique<gold_skybox>();
+	skybox = gold_unique_ptr<gold_skybox>::create();
 
 	for (const auto &script_name : demo_scripts)
 		scriptmanager.register_script(script_name);
 
-	model = gold_model::load_from_obj("models/cube.obj");
-	model->set_pos({ 0.f, 0.f, -3.f });
+	model = gold_model::load_from_obj("models/buildingno.obj");
+	model->set_pos({ 0.f, -10.f, 50.f });
 
-	model2 = gold_model::load_from_obj("models/building.obj");
-	model2->set_pos({ 30.f, 0.f, -30.f });
+	// model2 = gold_model::load_from_obj("models/building.obj");
+	// model2->set_pos({ 30.f, 0.f, -30.f });
 
 	return error_code::success;
 }
@@ -74,8 +78,17 @@ error_code gold_game::run()
 
 	scriptmanager.execute_script(demo_scripts[demo_current_script_index]);
 
+	const auto &camera_pos     = camera->get_eye();
+	const auto &camera_look_at = camera->get_look_at();
+
+	gold_vector3 cam_forward;
+	cam_forward.x = camera_pos.x - camera_look_at.x;
+	cam_forward.y = camera_pos.y - camera_look_at.y;
+	cam_forward.z = camera_pos.z - camera_look_at.z;
+	cam_forward   = cam_forward.norm();
+
 	if (gold_input.is_key_pressed(0x57)) // W
-		camera->move({ 0.f, 0.f, .1f });
+		camera->move({ cam_forward.x * 0.f, cam_forward.y * 0.f, cam_forward.z * .1f });
 	else if (gold_input.is_key_pressed(0x53)) // S
 		camera->move({ 0.f, 0.f, -.1f });
 
@@ -105,17 +118,44 @@ error_code gold_game::run()
 	if ((error_code = graphics_device->begin_render()) != error_code::success)
 		return error_code;
 
-	const float radius          = 100.0f;
+	/*const float radius          = 40.0f;
 	static float rotation_thing = 0.f;
-	rotation_thing += gold_delta_time;
+	rotation_thing += gold_delta_time * 0.5f;
 	float cam_x = sin(rotation_thing) * radius;
 	float cam_z = cos(rotation_thing) * radius;
 	camera->set_look_at({ 0.f, 0.f, 0.f });
-	camera->set_eye({ cam_x, 5.f, cam_z });
+	camera->set_eye({ cam_x, 10.f, cam_z });*/
+
+	const auto &cursor_dist = graphics_device->get_last_cursor_distance();
+
+	static gold_vector3 rot = { 0.f, 0.f, 0.f };
+	rot.x += cursor_dist.x;
+	rot.y += cursor_dist.y;
+	if (rot.y > 180.f)
+		rot.y = 180.f;
+	else if (rot.y < -180.f)
+		rot.y = -180.f;
+
+	static float yaw   = 0.f;
+	static float pitch = 0.f;
+	yaw += cursor_dist.x * 0.05f;
+	pitch -= cursor_dist.y * 0.05f;
+	if (pitch > 89.f)
+		pitch = 89.f;
+	if (pitch < -89.f)
+		pitch = -89.f;
+
+	gold_vector3 new_rot;
+	new_rot.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+	new_rot.y = sin(glm::radians(pitch));
+	new_rot.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+	new_rot   = new_rot.norm();
+
+	camera->set_look_at({ camera_pos.x + new_rot.x, camera_pos.y + new_rot.y, camera_pos.z + new_rot.z });
 
 	camera->update();
 
-	skybox->render(camera.get());
+	skybox->render(camera.handle());
 
 	// auto the_sin    = 1 + sinf(GetTickCount64() * .001f) * .5f;
 	// auto cube_scale = gold_vector3(2.f * the_sin, 2.f * the_sin, 2.f * the_sin);
@@ -123,12 +163,12 @@ error_code gold_game::run()
 	// cube->get_model()->set_rotation(GetTickCount64() * .01f * glm::radians(45.f), { 1.f, 1.f, 1.f }, true);
 	//  cube_1->get_model()->rotate(GetTickCount64() * .001f * glm::radians(45.f), { 1.f, 1.f, 1.f }, true);
 	//  cube_1->get_model()->set_pos(cube_1->get_model()->get_pos() + gold_vector3(0.f, 0.f, 0.01f));
-	cube->render(camera.get());
+	cube->render(camera.handle());
 
-	plane->render(camera.get());
+	plane->render(camera.handle());
 
-	model->set_pos({ -5.f, -100.f, 100.f });
-	model->render(camera.get());
+	// model->set_pos({ -5.f, -100.f, 100.f });
+	model->render(camera.handle());
 
 	// model2->render(camera.get());
 
@@ -161,5 +201,5 @@ error_code gold_game::run()
 
 gold_camera *gold_game::get_camera() const
 {
-	return camera.get();
+	return camera.handle();
 }

@@ -110,6 +110,15 @@ error_code gold_graphicsdevice::begin_render()
 	gold_delta_time      = (time - gold_last_frame_time) / 1000.f;
 	gold_last_frame_time = time;
 
+	ShowCursor(false);
+	RECT wnd_rect;
+	GetWindowRect(wnd, &wnd_rect);
+	POINT cursor_pos;
+	GetCursorPos(&cursor_pos);
+	SetCursorPos(wnd_rect.left + 800, wnd_rect.top + 450);
+	last_cursor_distance = { static_cast<float>(cursor_pos.x - (wnd_rect.left + 800)),
+		                     static_cast<float>(cursor_pos.y - (wnd_rect.top + 450)), 0.f };
+
 	glClearColor(.3f, .3f, .3f, 1.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -159,4 +168,9 @@ LRESULT CALLBACK gold_graphicsdevice::wnd_proc(HWND wnd, UINT msg, WPARAM param1
 		PostQuitMessage(0);
 
 	return DefWindowProc(wnd, msg, param1, param2);
+}
+
+gold_vector3 gold_graphicsdevice::get_last_cursor_distance() const
+{
+	return last_cursor_distance;
 }

@@ -22,7 +22,7 @@ GLuint gold_shader::get_id() const
 	return shader_id;
 }
 
-std::shared_ptr<gold_shader> gold_shader::load_from_file(std::string_view file, GLenum shader_type)
+gold_ref_ptr<gold_shader> gold_shader::load_from_file(std::string_view file, GLenum shader_type)
 {
 	std::ifstream shader_file(file.data());
 	if (shader_file.bad())
@@ -38,5 +38,5 @@ std::shared_ptr<gold_shader> gold_shader::load_from_file(std::string_view file, 
 	glShaderSource(shader_id, 1, &shader_id_str, 0);
 	glCompileShader(shader_id);
 
-	return std::make_unique<gold_shader>(shader_id);
+	return gold_ref_ptr<gold_shader>::create(shader_id);
 }

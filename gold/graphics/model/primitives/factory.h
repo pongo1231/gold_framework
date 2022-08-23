@@ -8,11 +8,10 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
-#include <memory>
 
 class gold_factory
 {
-	std::unordered_map<std::string, std::unique_ptr<gold_cube>> objects_pool;
+	std::unordered_map<std::string, gold_unique_ptr<gold_cube>> objects_pool;
 
   public:
 	gold_cube *create_cube(const gold_vector3 &pos, const std::string &name, bool is_plane = false);

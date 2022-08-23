@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gold/util/assert.h"
+#include "gold/util/macros.h"
 
 #include <corecrt.h>
 
@@ -8,8 +9,8 @@
 #include <map>
 #include <mutex>
 
-#define GOLD_MEMORY_DEFAULT_POOL_SIZE 1024 * 1024 * 100 // 100 MB
-#define GOLD_VECTOR_ALLOC_BLOCK_ELEMENTCOUNT 16ull
+#define GOLD_MEMORY_DEFAULT_POOL_SIZE 1024 * 1024 * 1024 // 1 GB
+#define GOLD_VECTOR_ALLOC_BLOCK_ELEMENTCOUNT 32ull
 
 void *gold_global_allocate(size_t size);
 void gold_global_deallocate(void *block);
@@ -36,9 +37,7 @@ class gold_vector
 
 	gold_vector &operator=(std::initializer_list<t> elements)
 	{
-		deallocate(block);
-		block = nullptr;
-
+		clear();
 		resize(std::max(elements.size(), GOLD_VECTOR_ALLOC_BLOCK_ELEMENTCOUNT));
 		if (elements.size() > 0)
 		{
@@ -46,6 +45,8 @@ class gold_vector
 				block[i] = *(elements.begin() + i);
 			elements_cur_size = elements.size();
 		}
+
+		return *this;
 	}
 
 	gold_vector(t *block, size_t size)
@@ -97,11 +98,16 @@ class gold_vector
 		if (!new_block)
 			gold_assert("gold_vector::resize memory allocation failed!");
 
+		memset(new_block, 0, new_size * sizeof(t));
+
 		size_t new_elements_cur_size = 0;
 		if (block)
 		{
 			for (; new_elements_cur_size < std::min(elements_cur_size, new_size); new_elements_cur_size++)
+			{
 				new_block[new_elements_cur_size] = block[new_elements_cur_size];
+				block[new_elements_cur_size]     = {};
+			}
 			deallocator(block);
 		}
 
@@ -112,7 +118,12 @@ class gold_vector
 
 	void clear()
 	{
-		deallocator(block);
+		if (block)
+		{
+			for (auto &element : block)
+				element = {};
+			deallocator(block);
+		}
 		block = nullptr;
 		resize(GOLD_VECTOR_ALLOC_BLOCK_ELEMENTCOUNT);
 	}
@@ -138,10 +149,10 @@ class gold_vector
 		for (size_t i = index + 1; i < elements_cur_size; i++)
 			block[i - 1] = block[i];
 
-		elements_cur_size--;
+		block[elements_cur_size--] = {};
 	}
 
-	void erase_element(t *element)
+	t *erase_element(t *element)
 	{
 		size_t index =
 		    (reinterpret_cast<std::uintptr_t>(element) - reinterpret_cast<std::uintptr_t>(block)) / sizeof(t);
@@ -149,6 +160,7 @@ class gold_vector
 			gold_assert("gold_vector::erase_address invalid address!");
 
 		erase_index(index);
+		return element;
 	}
 
 	void pop()
@@ -217,9 +229,9 @@ class gold_memory
 
 	~gold_memory();
 
-	gold_memory(gold_memory &)           = delete;
+	gold_memory(const gold_memory &)           = delete;
 
-	gold_memory operator=(gold_memory &) = delete;
+	gold_memory operator=(const gold_memory &) = delete;
 
   private:
 	void *_allocate(size_t size);
@@ -324,7 +336,7 @@ class gold_ref_ptr
   public:
 	gold_ref_ptr(t *data = nullptr) : data(data), refcount(reinterpret_cast<size_t *>(allocator(sizeof(size_t))))
 	{
-		(*refcount)++;
+		(*refcount) = 1;
 	}
 
 	~gold_ref_ptr()
@@ -344,6 +356,13 @@ class gold_ref_ptr
 
 	gold_ref_ptr &operator=(const gold_ref_ptr &ptr)
 	{
+		if (!--(*refcount))
+		{
+			deallocator(refcount);
+			if (data)
+				deallocator(data);
+		}
+
 		data     = ptr.data;
 		refcount = ptr.refcount;
 		(*refcount)++;

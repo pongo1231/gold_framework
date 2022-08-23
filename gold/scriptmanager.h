@@ -1,5 +1,6 @@
 #pragma once
 
+#include "gold/memory.h"
 #include "gold/util/macros.h"
 #include "gold/util/util.h"
 
@@ -10,10 +11,8 @@ extern "C"
 #include <lua/lualib.h>
 }
 
-#include <memory>
 #include <string>
 #include <string_view>
-#include <vector>
 
 class gold_input;
 
@@ -30,7 +29,7 @@ class scriptmanager
 		}
 	};
 
-	std::vector<script> script_states;
+	gold_vector<script> script_states;
 
   public:
 	void register_script(std::string_view filename);

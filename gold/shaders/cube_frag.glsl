@@ -1,6 +1,8 @@
 // Der Shader ist an Code-Auszügen von https://learnopengl.com/Lighting/Basic-Lighting angelehnt
 
-#version 400
+#version 460
+
+in vec2 p_uv;
 
 // Unsere fragment Farbe
 in vec4 p_col;
@@ -21,6 +23,8 @@ in float p_shininess;
 in vec3 p_mod_pos;
 in vec3 p_cam_pos;
 
+uniform sampler2D u_texture;
+
 void main(void)
 {
     vec3 ambient = p_ambient_modifier * p_light_col;
@@ -37,6 +41,7 @@ void main(void)
     float spec = pow(max(dot(view_dir, reflect_dir), 0.0), p_shininess);
     vec3 specular = p_spec_modifier * spec * p_light_col;
 
+    //o_col = texture(u_texture, p_uv);
     o_col = vec4(p_col.x * (ambient.x + diffuse.x + specular.x),
         p_col.y * (ambient.y + diffuse.y + specular.y),
         p_col.z * (ambient.z + diffuse.z + specular.z), p_col.w);

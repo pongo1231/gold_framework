@@ -3,15 +3,13 @@
 #include "gold/graphics/model/model.h"
 #include "gold/memory.h"
 
-#include <memory>
-
 class gold_vector3;
 class gold_camera;
 
 class gold_skybox
 {
   private:
-	std::unique_ptr<gold_model> model;
+	gold_unique_ptr<gold_model> model;
 
   public:
 	gold_skybox();
