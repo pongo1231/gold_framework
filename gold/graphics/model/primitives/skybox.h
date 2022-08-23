@@ -3,17 +3,14 @@
 #include "gold/graphics/model/model.h"
 #include "gold/memory.h"
 
-class gold_vector3;
-class gold_camera;
-
-class gold_skybox
+class gold_skybox : public gold_model
 {
-  private:
-	gold_unique_ptr<gold_model> model;
+	gold_skybox(gold_unique_ptr<gold_mesh> &&mesh, gold_unique_ptr<gold_shader_program> &&shader_program);
 
   public:
-	gold_skybox();
+	static gold_unique_ptr<gold_skybox> create();
 
-	void render(const gold_camera *camera) const;
-	gold_model *get_model() const;
+	virtual void render(const gold_camera *camera) override;
+
+	friend gold_unique_ptr<gold_skybox> gold_unique_ptr<gold_skybox>::create();
 };

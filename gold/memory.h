@@ -3,13 +3,10 @@
 #include "gold/util/assert.h"
 #include "gold/util/macros.h"
 
-#include <corecrt.h>
-
 #include <cstdint>
 #include <map>
-#include <mutex>
 
-#define GOLD_MEMORY_DEFAULT_POOL_SIZE 1024 * 1024 * 1024 // 1 GB
+#define GOLD_MEMORY_DEFAULT_POOL_SIZE 1024 * 1024 * 102 // 100 MB
 #define GOLD_VECTOR_ALLOC_BLOCK_ELEMENTCOUNT 32ull
 
 void *gold_global_allocate(size_t size);
@@ -179,6 +176,11 @@ class gold_vector
 		return elements_size;
 	}
 
+	bool empty() const
+	{
+		return elements_cur_size;
+	}
+
 	t *data() const
 	{
 		return block;
@@ -210,7 +212,6 @@ class gold_memory
 {
 	void *pool       = nullptr;
 	size_t pool_size = 0;
-	std::mutex mutex;
 
 	struct block
 	{
@@ -225,17 +226,68 @@ class gold_memory
 	std::map<std::uintptr_t, size_t> allocated_blocks;
 
   public:
-	gold_memory(size_t pool_size);
+	gold_memory(size_t pool_size) : pool(malloc(pool_size)), pool_size(pool_size)
+	{
+		if (!pool)
+			gold_assert("gold_memory::gold_memory couldn't allocate system memory");
+	}
 
-	~gold_memory();
+	~gold_memory()
+	{
+		free(pool);
+	}
 
 	gold_memory(const gold_memory &)           = delete;
 
 	gold_memory operator=(const gold_memory &) = delete;
 
   private:
-	void *_allocate(size_t size);
-	void _deallocate(void *block);
+	void *_allocate(size_t size)
+	{
+		auto pool_end              = reinterpret_cast<std::uintptr_t>(pool) + pool_size;
+
+		std::uintptr_t new_address = allocated_blocks.empty() ? reinterpret_cast<std::uintptr_t>(pool) : 0;
+		auto prev_it               = allocated_blocks.rbegin();
+		for (auto it = allocated_blocks.rbegin(); it != allocated_blocks.rend(); it++)
+		{
+			const auto &alloc_ptr  = it->first;
+			const auto &alloc_size = it->second;
+			auto alloc_end         = alloc_ptr + alloc_size;
+
+			if (it == allocated_blocks.rbegin())
+			{
+				if (alloc_end + size < pool_end)
+				{
+					new_address = alloc_end;
+					break;
+				}
+			}
+			else
+			{
+				const auto &prev_alloc_ptr = prev_it--->first;
+
+				if (alloc_end + size < prev_alloc_ptr)
+					new_address = alloc_end;
+			}
+		}
+
+		if (!new_address)
+			gold_assert("gold_memory::assert couldn't allocate memory (dynamic additional pool allocating not "
+			            "implemented yet)");
+
+		allocated_blocks[new_address] = size;
+
+		return reinterpret_cast<void *>(new_address);
+	}
+
+	void _deallocate(void *block)
+	{
+		auto result = allocated_blocks.find(reinterpret_cast<std::uintptr_t>(block));
+		if (result == allocated_blocks.end())
+			gold_assert("gold_memory::deallocate couldn't find given block");
+
+		allocated_blocks.erase(result);
+	}
 
   public:
 	inline void *allocate(size_t size)
@@ -265,8 +317,7 @@ template <typename t, void *(*allocator)(size_t) = gold_global_allocate,
           void (*deallocator)(void *) = gold_global_deallocate>
 class gold_unique_ptr
 {
-	t *data                 = nullptr;
-	bool has_data_ownership = true;
+	t *data = nullptr;
 
   public:
 	gold_unique_ptr(t *data = nullptr) : data(data)
@@ -275,7 +326,7 @@ class gold_unique_ptr
 
 	~gold_unique_ptr()
 	{
-		if (has_data_ownership && data)
+		if (data)
 			deallocator(data);
 	}
 
@@ -283,17 +334,17 @@ class gold_unique_ptr
 
 	gold_unique_ptr &operator=(const gold_unique_ptr &) = delete;
 
-	gold_unique_ptr(const gold_unique_ptr &&ptr) : gold_unique_ptr(ptr.data)
+	template <typename ptrtype> gold_unique_ptr(gold_unique_ptr<ptrtype> &&ptr)
 	{
+		data = ptr.release();
 	}
 
-	gold_unique_ptr &operator=(gold_unique_ptr &&ptr)
+	template <typename ptrtype> gold_unique_ptr &operator=(gold_unique_ptr<ptrtype> &&ptr) noexcept
 	{
-		if (data)
+		if (data && data != ptr.handle())
 			deallocator(data);
 
-		data                   = ptr.data;
-		ptr.has_data_ownership = false;
+		data = ptr.release();
 
 		return *this;
 	}
@@ -313,15 +364,36 @@ class gold_unique_ptr
 		return data;
 	}
 
+	void set(t *new_data)
+	{
+		if (data)
+			deallocator(data);
+		data = new_data;
+	}
+
+	void clear()
+	{
+		if (data)
+			deallocator(data);
+		data = nullptr;
+	}
+
+	t *release()
+	{
+		auto old_data = data;
+		data          = nullptr;
+		return old_data;
+	}
+
 	t *handle() const
 	{
 		return data;
 	}
 
-	static gold_unique_ptr create(auto &&...args)
+	template <class... argtype> static gold_unique_ptr create(argtype &&...args)
 	{
 		auto alloc = reinterpret_cast<t *>(allocator(sizeof(t)));
-		std::construct_at(alloc, args...);
+		std::construct_at(alloc, std::forward<argtype>(args)...);
 		return gold_unique_ptr(alloc);
 	}
 };
@@ -334,14 +406,18 @@ class gold_ref_ptr
 	size_t *refcount = nullptr;
 
   public:
-	gold_ref_ptr(t *data = nullptr) : data(data), refcount(reinterpret_cast<size_t *>(allocator(sizeof(size_t))))
+	gold_ref_ptr(t *data = nullptr) : data(data)
 	{
-		(*refcount) = 1;
+		if (data)
+		{
+			refcount    = reinterpret_cast<size_t *>(allocator(sizeof(size_t)));
+			(*refcount) = 1;
+		}
 	}
 
 	~gold_ref_ptr()
 	{
-		if (!--(*refcount))
+		if (refcount && !--(*refcount))
 		{
 			deallocator(refcount);
 			if (data)
@@ -349,14 +425,15 @@ class gold_ref_ptr
 		}
 	}
 
-	gold_ref_ptr(const gold_ref_ptr &ptr) : data(ptr.data), refcount(ptr.refcount)
+	template <typename ptrtype> gold_ref_ptr(const gold_ref_ptr<ptrtype> &ptr) : data(ptr.data), refcount(ptr.refcount)
 	{
-		(*refcount)++;
+		if (refcount)
+			(*refcount)++;
 	}
 
-	gold_ref_ptr &operator=(const gold_ref_ptr &ptr)
+	template <typename ptrtype> gold_ref_ptr &operator=(const gold_ref_ptr<ptrtype> &ptr)
 	{
-		if (!--(*refcount))
+		if (refcount && !--(*refcount))
 		{
 			deallocator(refcount);
 			if (data)
@@ -365,7 +442,8 @@ class gold_ref_ptr
 
 		data     = ptr.data;
 		refcount = ptr.refcount;
-		(*refcount)++;
+		if (refcount)
+			(*refcount)++;
 
 		return *this;
 	}

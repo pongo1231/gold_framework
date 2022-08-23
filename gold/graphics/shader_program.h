@@ -15,8 +15,8 @@ class gold_shader_program
   private:
 	GLuint program_id = 0;
 
-	gold_ref_ptr<gold_shader> vert_shader;
-	gold_ref_ptr<gold_shader> frag_shader;
+	gold_unique_ptr<gold_shader> vertex_shader;
+	gold_unique_ptr<gold_shader> fragment_shader;
 
 	GLint uniform_matrix_perspective_location = 0;
 	GLint uniform_matrix_view_location        = 0;
@@ -25,8 +25,8 @@ class gold_shader_program
 	bool valid                                = false;
 
   public:
-	gold_shader_program(gold_ref_ptr<gold_shader> vert_shader, gold_ref_ptr<gold_shader> frag_shader);
-
+	gold_shader_program(gold_unique_ptr<gold_shader> &&vertex_shader, gold_unique_ptr<gold_shader> &&fragment_shader);
+	gold_shader_program(std::string_view vertex_shader, std::string_view fragment_shader);
 	void bind() const;
 	void unbind() const;
 

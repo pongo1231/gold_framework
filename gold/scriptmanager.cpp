@@ -1,6 +1,6 @@
 #include "scriptmanager.h"
 
-#include "gold/graphics/model/primitives/factory.h"
+#include "gold/graphics/model/factory.h"
 #include "gold/input.h"
 #include "gold/util/file.h"
 #include "gold/util/string.h"
@@ -24,7 +24,7 @@ static int lua_print(lua_State *lua)
 	return 0;
 }
 
-static int lua_get_object_pos(lua_State *lua)
+static int lua_get_object_position(lua_State *lua)
 {
 	auto name   = luaL_checklstring(lua, 1, NULL);
 
@@ -32,7 +32,7 @@ static int lua_get_object_pos(lua_State *lua)
 	if (!object)
 		return 0;
 
-	const auto &pos = object->get_model()->get_pos();
+	const auto &pos = object->get_pos();
 	lua_pushnumber(lua, pos.x);
 	lua_pushnumber(lua, pos.y);
 	lua_pushnumber(lua, pos.z);
@@ -40,7 +40,7 @@ static int lua_get_object_pos(lua_State *lua)
 	return 3;
 }
 
-static int lua_set_object_pos(lua_State *lua)
+static int lua_set_object_position(lua_State *lua)
 {
 	auto name   = luaL_checklstring(lua, 1, NULL);
 	float x     = luaL_checknumber(lua, 2);
@@ -49,12 +49,12 @@ static int lua_set_object_pos(lua_State *lua)
 
 	auto object = gold_factory.get_object(name);
 	if (object)
-		object->get_model()->set_pos({ x, y, z });
+		object->set_position({ x, y, z });
 
 	return 0;
 }
 
-static int lua_get_object_rot(lua_State *lua)
+static int lua_get_object_rotation(lua_State *lua)
 {
 	auto name   = luaL_checklstring(lua, 1, NULL);
 
@@ -62,7 +62,7 @@ static int lua_get_object_rot(lua_State *lua)
 	if (!object)
 		return 0;
 
-	const auto &pos = object->get_model()->get_rotation();
+	const auto &pos = object->get_rotation();
 	lua_pushnumber(lua, pos.x);
 	lua_pushnumber(lua, pos.y);
 	lua_pushnumber(lua, pos.z);
@@ -78,12 +78,12 @@ static int lua_get_object_angle(lua_State *lua)
 	if (!object)
 		return 0;
 
-	lua_pushnumber(lua, object->get_model()->get_angle());
+	lua_pushnumber(lua, object->get_angle());
 
 	return 1;
 }
 
-static int lua_set_object_rot(lua_State *lua)
+static int lua_set_object_rotation(lua_State *lua)
 {
 	auto name   = luaL_checklstring(lua, 1, NULL);
 	float angle = luaL_checknumber(lua, 2);
@@ -93,7 +93,7 @@ static int lua_set_object_rot(lua_State *lua)
 
 	auto object = gold_factory.get_object(name);
 	if (object)
-		object->get_model()->set_rotation(angle, { x, y, z });
+		object->set_rotation(angle, { x, y, z });
 
 	return 0;
 }
@@ -121,19 +121,19 @@ static void register_functions(lua_State *lua, std::string_view filename)
 	lua_pushcfunction(lua, lua_print);
 	lua_setglobal(lua, "print");
 
-	lua_pushcfunction(lua, lua_get_object_pos);
+	lua_pushcfunction(lua, lua_get_object_position);
 	lua_setglobal(lua, "get_object_position");
 
-	lua_pushcfunction(lua, lua_set_object_pos);
+	lua_pushcfunction(lua, lua_set_object_position);
 	lua_setglobal(lua, "set_object_position");
 
-	lua_pushcfunction(lua, lua_get_object_rot);
+	lua_pushcfunction(lua, lua_get_object_rotation);
 	lua_setglobal(lua, "get_object_rotation");
 
 	lua_pushcfunction(lua, lua_get_object_angle);
 	lua_setglobal(lua, "get_object_angle");
 
-	lua_pushcfunction(lua, lua_set_object_rot);
+	lua_pushcfunction(lua, lua_set_object_rotation);
 	lua_setglobal(lua, "set_object_rotation");
 
 	lua_pushcfunction(lua, lua_key_pressed);

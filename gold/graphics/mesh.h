@@ -21,6 +21,7 @@ class gold_mesh
 	bool is_triangle_strip  = false;
 
   public:
+	gold_mesh() = default;
 	gold_mesh(const gold_vector<gold_vertex> &vertices);
 	gold_mesh(const gold_vector<gold_vertex> &vertices, const gold_vector<std::uint32_t> &indices);
 	~gold_mesh();

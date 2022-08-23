@@ -11,19 +11,30 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-gold_model::gold_model(gold_unique_ptr<gold_mesh> &mesh, gold_unique_ptr<gold_shader_program> &shader_program)
+gold_model::gold_model(gold_unique_ptr<gold_mesh> &&mesh, gold_unique_ptr<gold_shader_program> &&shader_program)
     : mesh(std::move(mesh)), shader_program(std::move(shader_program))
 {
+	this->shader_program->bind();
+	this->shader_program->set_uniform_vector3("uni_light_pos", { 0.f, 0.f, 0.f });
+	this->shader_program->set_uniform_vector3("uni_light_col", { .0f, .5f, .5f });
+	this->shader_program->set_uniform_float("uni_ambient_modifier", .9f);
+	this->shader_program->set_uniform_float("uni_spec_modifier", specular_multiplier);
+	this->shader_program->set_uniform_float("uni_shininess", shininess);
+	this->shader_program->unbind();
 }
 
-void gold_model::render(const gold_camera *camera) const
+void gold_model::render(const gold_camera *camera)
 {
-	shader_program->bind();
+	if (shader_program)
+	{
+		shader_program->bind();
 
-	glUniformMatrix4fv(shader_program->get_perspective_uniform_location(), 1, GL_FALSE,
-	                   glm::value_ptr(camera->get_perspective()));
+		glUniformMatrix4fv(shader_program->get_perspective_uniform_location(), 1, GL_FALSE,
+		                   glm::value_ptr(camera->get_perspective()));
 
-	glUniformMatrix4fv(shader_program->get_view_uniform_location(), 1, GL_FALSE, glm::value_ptr(camera->get_view()));
+		glUniformMatrix4fv(shader_program->get_view_uniform_location(), 1, GL_FALSE,
+		                   glm::value_ptr(camera->get_view()));
+	}
 
 	auto matrix = glm::mat4(1.f);
 	matrix      = glm::scale(matrix, { m_scale.x, m_scale.y, m_scale.z });
@@ -32,14 +43,16 @@ void gold_model::render(const gold_camera *camera) const
 	glUniformMatrix4fv(shader_program->get_model_uniform_location(), 1, GL_FALSE, glm::value_ptr(matrix));
 
 	if (texture)
-		texture->bind(*shader_program.handle());
+		texture->bind(shader_program.handle());
 
-	mesh->render();
+	if (mesh)
+		mesh->render();
 
 	if (texture)
 		texture->unbind();
 
-	shader_program->unbind();
+	if (shader_program)
+		shader_program->unbind();
 }
 
 const gold_shader_program *gold_model::get_shader_program() const
@@ -57,7 +70,7 @@ const gold_vector3 &gold_model::get_pos() const
 	return position;
 }
 
-void gold_model::set_pos(const gold_vector3 &pos)
+void gold_model::set_position(const gold_vector3 &pos)
 {
 	position = pos;
 }
@@ -88,6 +101,24 @@ void gold_model::set_scale(const gold_vector3 &_scale)
 	m_scale = _scale;
 }
 
+void gold_model::set_specular_multiplier(float specular_multiplier)
+{
+	this->specular_multiplier = specular_multiplier;
+
+	shader_program->bind();
+	shader_program->set_uniform_float("uni_spec_modifier", specular_multiplier);
+	shader_program->unbind();
+}
+
+void gold_model::set_shininess(float shininess)
+{
+	this->shininess = shininess;
+
+	shader_program->bind();
+	shader_program->set_uniform_float("uni_shininess", shininess);
+	shader_program->unbind();
+}
+
 gold_unique_ptr<gold_model> gold_model::load_from_obj(std::string_view filename)
 {
 	if (!gold_file::does_file_exist(filename))
@@ -97,7 +128,7 @@ gold_unique_ptr<gold_model> gold_model::load_from_obj(std::string_view filename)
 
 	auto vert_shader    = gold_shader::load_from_file("shaders/cube_vert.glsl", GL_VERTEX_SHADER);
 	auto frag_shader    = gold_shader::load_from_file("shaders/cube_frag.glsl", GL_FRAGMENT_SHADER);
-	auto shader_program = gold_unique_ptr<gold_shader_program>::create(vert_shader, frag_shader);
+	auto shader_program = gold_unique_ptr<gold_shader_program>::create(std::move(vert_shader), std::move(frag_shader));
 
 	shader_program->bind();
 	shader_program->set_uniform_vector3("uni_light_pos", { 0.f, 0.f, 0.f });
@@ -107,5 +138,5 @@ gold_unique_ptr<gold_model> gold_model::load_from_obj(std::string_view filename)
 	shader_program->set_uniform_float("uni_shininess", 10.f);
 	shader_program->unbind();
 
-	return gold_unique_ptr<gold_model>::create(mesh, shader_program);
+	return gold_unique_ptr<gold_model>::create(std::move(mesh), std::move(shader_program));
 }

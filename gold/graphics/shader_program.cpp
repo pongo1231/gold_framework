@@ -7,12 +7,39 @@
 
 #include <GL/glew.h>
 
-gold_shader_program::gold_shader_program(gold_ref_ptr<gold_shader> vert_shader, gold_ref_ptr<gold_shader> frag_shader)
-    : vert_shader(vert_shader), frag_shader(frag_shader)
+gold_shader_program::gold_shader_program(gold_unique_ptr<gold_shader> &&vertex_shader,
+                                         gold_unique_ptr<gold_shader> &&fragment_shader)
+    : vertex_shader(std::move(vertex_shader)), fragment_shader(std::move(fragment_shader))
 {
 	program_id = glCreateProgram();
-	glAttachShader(program_id, vert_shader->get_id());
-	glAttachShader(program_id, frag_shader->get_id());
+	glAttachShader(program_id, this->vertex_shader->get_id());
+	glAttachShader(program_id, this->fragment_shader->get_id());
+	glLinkProgram(program_id);
+	glValidateProgram(program_id);
+
+	GLint succeeded;
+	glGetProgramiv(program_id, GL_VALIDATE_STATUS, &succeeded);
+
+	if (!succeeded)
+	{
+		LOG_ERROR("Shader compilation failed");
+		return;
+	}
+
+	uniform_matrix_perspective_location = glGetUniformLocation(program_id, "uniform_matrix_perspective");
+	uniform_matrix_view_location        = glGetUniformLocation(program_id, "uniform_matrix_view");
+	uniform_matrix_model_location       = glGetUniformLocation(program_id, "uniform_matrix_model");
+
+	valid                               = true;
+}
+
+gold_shader_program::gold_shader_program(std::string_view vertex_shader, std::string_view fragment_shader)
+    : vertex_shader(gold_shader::load_from_file(vertex_shader, GL_VERTEX_SHADER)),
+      fragment_shader(gold_shader::load_from_file(fragment_shader, GL_FRAGMENT_SHADER))
+{
+	program_id = glCreateProgram();
+	glAttachShader(program_id, this->vertex_shader->get_id());
+	glAttachShader(program_id, this->fragment_shader->get_id());
 	glLinkProgram(program_id);
 	glValidateProgram(program_id);
 

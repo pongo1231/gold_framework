@@ -3,22 +3,12 @@
 #include "gold/graphics/model/model.h"
 #include "gold/memory.h"
 
-class gold_vector3;
-class gold_camera;
-
-class gold_cube
+class gold_cube : public gold_model
 {
-  private:
-	gold_unique_ptr<gold_model> model;
-	float specular_multiplier = .5f;
-	float shininess           = 64.f;
+	gold_cube(gold_unique_ptr<gold_mesh> &&mesh, gold_unique_ptr<gold_shader_program> &&shader_program);
 
   public:
-	gold_cube(const gold_vector3 &pos, bool is_plane = false);
+	static gold_unique_ptr<gold_cube> create();
 
-	void render(const gold_camera *camera) const;
-	gold_model *get_model() const;
-
-	void set_specular_multiplier(float spec_multiplier);
-	void set_shininess(float shininess);
+	virtual void render(const gold_camera *camera) override;
 };

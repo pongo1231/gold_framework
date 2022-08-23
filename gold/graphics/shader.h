@@ -18,5 +18,5 @@ class gold_shader
 
 	GLuint get_id() const;
 
-	static gold_ref_ptr<gold_shader> load_from_file(std::string_view file, GLenum shader_type);
+	static gold_unique_ptr<gold_shader> load_from_file(std::string_view file, GLenum shader_type);
 };

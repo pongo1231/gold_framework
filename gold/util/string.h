@@ -3,6 +3,7 @@
 #include "gold/memory.h"
 #include "gold/util/assert.h"
 
+#include <limits>
 #include <string_view>
 
 template <void *(*allocator)(size_t), void (*deallocator)(void *)> class gold_base_string
@@ -37,9 +38,10 @@ template <void *(*allocator)(size_t), void (*deallocator)(void *)> class gold_ba
 	{
 	}
 
-	gold_base_string &operator=(const gold_base_string &&str)
+	gold_base_string &operator=(const gold_base_string &&str) noexcept
 	{
-		deallocator(buffer);
+		if (buffer)
+			deallocator(buffer);
 		buffer        = str.buffer;
 		buffer_length = str.buffer_length;
 
@@ -125,7 +127,7 @@ template <void *(*allocator)(size_t), void (*deallocator)(void *)> class gold_ba
 	{
 		auto new_buffer = reinterpret_cast<char *>(allocator(size + 1));
 		if (!new_buffer)
-			gold_assert("gold_string::resize failed to allocate memory");
+			gold_assert("gold_base_string::resize failed to allocate memory");
 
 		memset(new_buffer, 0, size + 1);
 
@@ -149,7 +151,7 @@ template <void *(*allocator)(size_t), void (*deallocator)(void *)> class gold_ba
 		return !buffer || !buffer_length;
 	}
 
-	gold_base_string substring(size_t index, size_t count = npos)
+	gold_base_string substring(size_t index, size_t count = npos) const
 	{
 		if (index >= buffer_length)
 			gold_assert("gold_base_string::substring index > buffer_length!");
@@ -166,59 +168,96 @@ template <void *(*allocator)(size_t), void (*deallocator)(void *)> class gold_ba
 		return str;
 	}
 
-	size_t find(char character, size_t offset = 0) const
+	size_t find(std::string_view sequence, size_t offset = 0) const
 	{
-		if (offset >= buffer_length)
+		if (sequence.empty() || offset >= buffer_length)
 			return npos;
 
+		size_t i = 0;
 		for (char *c = buffer + offset; c < buffer + buffer_length; c++)
 		{
-			if (*c == character)
+			if (*c != sequence[i])
+				i = 0;
+			else if (++i == sequence.length())
 				return reinterpret_cast<size_t>(c) - reinterpret_cast<size_t>(buffer);
 		}
 
 		return npos;
 	}
 
-	size_t find_last(char character, size_t offset = 0) const
+	size_t find_last(std::string_view sequence, size_t offset = 0) const
 	{
-		if (offset >= buffer_length)
+		if (sequence.empty() || offset >= buffer_length)
 			return npos;
 
-		size_t i = npos;
+		size_t i = 0, last_found = npos;
 		for (char *c = buffer + offset; c < buffer + buffer_length; c++)
 		{
-			if (*c == character)
-				i = reinterpret_cast<size_t>(c) - reinterpret_cast<size_t>(buffer);
+			if (*c != sequence[i])
+				i = 0;
+			else if (++i == sequence.length())
+			{
+				i          = 0;
+				last_found = reinterpret_cast<size_t>(c) - reinterpret_cast<size_t>(buffer);
+			}
 		}
 
-		return i;
+		return last_found;
 	}
 
-	size_t find_first_not_of(char character, size_t offset = 0) const
+	size_t find_first_not_of(std::string_view sequence, size_t offset = 0) const
 	{
-		if (offset >= buffer_length)
+		if (sequence.empty() || offset >= buffer_length)
 			return npos;
 
+		size_t i = 0;
 		for (char *c = buffer + offset; c < buffer + buffer_length; c++)
 		{
-			if (*c != character)
+			if (*c == sequence[i])
+				i = 0;
+			else if (++i == sequence.length())
 				return reinterpret_cast<size_t>(c) - reinterpret_cast<size_t>(buffer);
 		}
 
 		return npos;
 	}
 
-	size_t find_last_not_of(char character, size_t offset = 0) const
+	size_t find_last_not_of(std::string_view sequence, size_t offset = 0) const
 	{
-		if (offset >= buffer_length)
+		if (sequence.empty() || offset >= buffer_length)
 			return npos;
 
-		size_t i = npos;
+		size_t i = 0, found_last = npos;
 		for (char *c = buffer + offset; c < buffer + buffer_length; c++)
 		{
-			if (*c != character)
-				i = reinterpret_cast<size_t>(c) - reinterpret_cast<size_t>(buffer);
+			if (*c == sequence[i])
+				i = 0;
+			else if (++i == sequence.length())
+			{
+				i          = 0;
+				found_last = reinterpret_cast<size_t>(c) - reinterpret_cast<size_t>(buffer);
+			}
+		}
+
+		return found_last;
+	}
+
+	bool contains(std::string_view sequence) const
+	{
+		return find(sequence) != npos;
+	}
+
+	size_t count(std::string_view sequence) const
+	{
+		size_t i = 0, offset = 0;
+		while (true)
+		{
+			offset = find(sequence, offset);
+			if (offset == npos)
+				break;
+
+			i++;
+			offset++;
 		}
 
 		return i;
@@ -229,18 +268,18 @@ template <void *(*allocator)(size_t), void (*deallocator)(void *)> class gold_ba
 		if (is_empty())
 			return {};
 
-		auto first_index = find_first_not_of(' ');
+		auto first_index = find_first_not_of(" ");
 		if (first_index == npos)
 			return {};
 
 		gold_base_string str = buffer;
 		str                  = str.substring(first_index);
-		str                  = str.substring(0, find_last_not_of(' ') + 1);
+		str                  = str.substring(0, find_last_not_of(" ") + 1);
 
 		return str;
 	}
 
-	gold_vector<gold_base_string> split(char delimiter) const
+	gold_vector<gold_base_string> split(std::string_view delimiter) const
 	{
 		if (is_empty())
 			return {};

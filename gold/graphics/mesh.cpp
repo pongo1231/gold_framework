@@ -10,6 +10,8 @@
 
 #include <GL/glew.h>
 
+#include <sstream>
+
 gold_mesh::gold_mesh(const gold_vector<gold_vertex> &vertices) : vertices(vertices)
 {
 	glGenBuffers(1, &vertex_buffer_id);
@@ -98,66 +100,67 @@ gold_unique_ptr<gold_mesh> gold_mesh::load_from_obj(std::string_view filename)
 	gold_vector<std::uint32_t> vertex_indices;
 	gold_vector<gold_vector3> vertex_normals;
 	gold_vector<std::uint32_t> normal_indices;
+	gold_vector<gold_vector3> vertex_uvs;
+	gold_vector<std::uint32_t> uv_indices;
 
-	for (auto &line : buffer.split('\n'))
+	for (auto &line : buffer.split("\n"))
 	{
 		line = line.trim();
 		if (line.is_empty())
 			continue;
 
-		const auto &values = line.split(' ');
+		const auto &values = line.split(" ");
 		if (values[0] == "v")
 			vertex_positions.emplace(std::stof(values[1].c_string()), std::stof(values[2].c_string()),
 			                         std::stof(values[3].c_string()));
 		else if (values[0] == "vn")
 			vertex_normals.emplace(std::stof(values[1].c_string()), std::stof(values[2].c_string()),
 			                       std::stof(values[3].c_string()));
+		else if (values[0] == "vt")
+			vertex_uvs.emplace(std::stof(values[1].c_string()), std::stof(values[2].c_string()), 0.f);
 		else if (values[0] == "f")
 		{
-			gold_vector3 this_vertex_indices;
-			gold_vector3 this_normal_indices;
-			for (std::uint8_t i = 1; i < values.size(); i++)
+			auto parse_indices = [&](auto &list, uint8_t index)
 			{
-				const auto &index_values                = values[i].split('/');
-
-				this_vertex_indices[std::min(i - 1, 2)] = std::stoi(index_values[0].c_string()) - 1;
-
-				if (i > 2)
+				gold_vector3 indices;
+				for (std::uint8_t i = 1; i < values.size(); i++)
 				{
-					vertex_indices.push(this_vertex_indices.x);
-					vertex_indices.push(this_vertex_indices.y);
-					vertex_indices.push(this_vertex_indices.z);
+					const auto &index_values    = values[i].split("/");
 
-					this_vertex_indices.x = std::stoi(values[std::max(1, i - 3)].c_string()) - 1;
-					this_vertex_indices.y = this_vertex_indices.z;
+					indices[std::min(i - 1, 2)] = std::stoi(index_values[index].c_string()) - 1;
+
+					if (i > 2)
+					{
+						list.push(indices.x);
+						list.push(indices.y);
+						list.push(indices.z);
+
+						indices.x = std::stoi(values[std::max(1, i - 3)].c_string()) - 1;
+						indices.y = indices.z;
+					}
 				}
+			};
 
-				this_normal_indices[std::min(i - 1, 2)] = std::stoi(index_values[2].c_string()) - 1;
+			// vertices
+			parse_indices(vertex_indices, 0);
 
-				if (i > 2)
-				{
-					normal_indices.push(this_normal_indices.x);
-					normal_indices.push(this_normal_indices.y);
-					normal_indices.push(this_normal_indices.z);
+			// check with first index, should be the same format throughout
+			// normals (vertex//normal)
+			if (values[1].contains("//"))
+				parse_indices(normal_indices, 1);
+			else
+			{
+				auto indices_count = values[1].count("/");
 
-					this_normal_indices.x = std::stoi(values[std::max(1, i - 3)].c_string()) - 1;
-					this_normal_indices.y = this_normal_indices.z;
-				}
+				// texture uv (vertex/uv)
+				if (indices_count > 0)
+					parse_indices(uv_indices, 1);
+				// normals (vertex/uv/normal)
+				if (indices_count > 1)
+					parse_indices(normal_indices, 2);
 			}
 		}
 	}
-
-	/*LOG("Vertices:");
-	for (const auto &vertex : vertex_positions)
-	    LOG(vertex.x << " " << vertex.y << " " << vertex.z);*/
-
-	/*LOG("Normals:");
-	for (const auto &normal : vertex_normals)
-	    LOG(normal.x << " " << normal.y << " " << normal.z);*/
-
-	/*LOG("Indices:");
-	for (const auto &index : indices)
-	    LOG(index);*/
 
 	gold_vector<gold_vertex> vertices;
 	for (size_t i = 0; i < vertex_positions.size(); i++)
@@ -169,7 +172,7 @@ gold_unique_ptr<gold_mesh> gold_mesh::load_from_obj(std::string_view filename)
 		vertex.pos_y = vertex_pos.y;
 		vertex.pos_z = vertex_pos.z;
 
-		if (normal_indices.size() > i)
+		if (!normal_indices.empty())
 		{
 			auto normal_index = normal_indices[i];
 			vertex.norm_x     = vertex_normals[normal_index].x;
@@ -177,10 +180,17 @@ gold_unique_ptr<gold_mesh> gold_mesh::load_from_obj(std::string_view filename)
 			vertex.norm_z     = vertex_normals[normal_index].z;
 		}
 
-		vertex.col_a = 0.f;
-		vertex.col_r = gold_random.random_float(0.f, 1.f);
-		vertex.col_b = gold_random.random_float(0.f, 1.f);
+		if (!uv_indices.empty())
+		{
+			auto uv_index = uv_indices[i];
+			vertex.tex_u  = vertex_normals[uv_index].x;
+			vertex.tex_v  = vertex_normals[uv_index].y;
+		}
+
+		vertex.col_r = 1.f;
 		vertex.col_g = 0.f;
+		vertex.col_b = 0.f;
+		vertex.col_a = 1.f;
 
 		vertices.push(vertex);
 	}

@@ -1,33 +1,19 @@
 #include "game.h"
 
-#include "gold/error_code.h"
-#include "gold/graphics/mesh.h"
-#include "gold/graphics/model/primitives/factory.h"
-#include "gold/graphics/shader.h"
-#include "gold/graphics/shader_program.h"
-#include "gold/graphics/texture.h"
-#include "gold/scriptmanager.h"
-#include "gold/util/macros.h"
-#include "gold/util/string.h"
-#include "gold/util/time.h"
-#include "gold/util/vertex.h"
+#include "gold/gold.h"
 
 #define WIN32_LEAN_AND_MEAN
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <windows.h>
 
 #include <cstdio>
 #include <fstream>
 #include <sstream>
-#include <string>
 
 static gold_vector<gold_string> demo_scripts = { "scripts/pingpong.lua", "scripts/circle.lua", "scripts/random.lua",
 	                                             "scripts/playerinput.lua" };
 static size_t demo_current_script_index      = 0;
 
-auto texture                                 = gold_ref_ptr<gold_texture>::create("textures/test.bmp");
+gold_ref_ptr<gold_texture> texture;
 
 error_code gold_game::init(HINSTANCE inst)
 {
@@ -47,24 +33,30 @@ error_code gold_game::init(HINSTANCE inst)
 	if ((error_code = graphics_device->init(inst)) != error_code::success)
 		return error_code;
 
-	plane = gold_factory.create_cube({ 0.f, -2.f, 0.f }, "plane", true);
-	plane->get_model()->set_scale({ 10.f, 1.f, 10.f });
+	texture = gold_ref_ptr<gold_texture>::create("textures/wall.jpg");
+
+	plane   = gold_factory.create_model<gold_model_type::cube, gold_cube>("plane");
+	plane->set_position({ 0.f, -2.f, 0.f });
+	plane->set_scale({ 10.f, 1.f, 10.f });
 	plane->set_specular_multiplier(0.f);
 	plane->set_shininess(0.f);
-	plane->get_model()->set_texture(texture);
+	plane->set_texture(texture);
 
-	cube = gold_factory.create_cube({ 0.f, 0.f, -3.f }, "cube");
+	cube = gold_factory.create_model<gold_model_type::cube, gold_cube>("cube");
+	cube->set_position({ 0.f, 0.f, -3.f });
 	cube->set_specular_multiplier(1.f);
 	cube->set_shininess(10.f);
-	cube->get_model()->set_texture(texture);
+	cube->set_texture(texture);
 
-	skybox = gold_unique_ptr<gold_skybox>::create();
+	skybox = gold_unique_ptr<gold_skybox>(gold_skybox::create());
+	// gold_factory.create_model<gold_model_type::skybox, gold_skybox>("skybox");
 
 	for (const auto &script_name : demo_scripts)
 		scriptmanager.register_script(script_name);
 
 	model = gold_model::load_from_obj("models/buildingno.obj");
-	model->set_pos({ 0.f, -10.f, 50.f });
+	model->set_position({ 0.f, -10.f, 50.f });
+	model->set_texture(texture);
 
 	// model2 = gold_model::load_from_obj("models/building.obj");
 	// model2->set_pos({ 30.f, 0.f, -30.f });
@@ -156,6 +148,7 @@ error_code gold_game::run()
 	camera->update();
 
 	skybox->render(camera.handle());
+	// gold_factory.get_object("skybox")->render(camera.handle());
 
 	// auto the_sin    = 1 + sinf(GetTickCount64() * .001f) * .5f;
 	// auto cube_scale = gold_vector3(2.f * the_sin, 2.f * the_sin, 2.f * the_sin);
@@ -167,7 +160,7 @@ error_code gold_game::run()
 
 	plane->render(camera.handle());
 
-	// model->set_pos({ -5.f, -100.f, 100.f });
+	// model->set_position({ -5.f, -100.f, 100.f });
 	model->render(camera.handle());
 
 	// model2->render(camera.get());

@@ -35,29 +35,30 @@ static const gold_vector<std::uint32_t> sky_indices = { 0, 1, 2, 2, 5, 0,
 
 	                                                    1, 4, 2, 2, 4, 7 };
 
-gold_skybox::gold_skybox()
+gold_skybox::gold_skybox(gold_unique_ptr<gold_mesh> &&mesh, gold_unique_ptr<gold_shader_program> &&shader_program)
+    : gold_model(std::move(mesh), std::move(shader_program))
 {
-	auto mesh           = gold_unique_ptr<gold_mesh>::create(sky_vertices, sky_indices);
-	auto vert_shader    = gold_shader::load_from_file("shaders/sky_vert.glsl", GL_VERTEX_SHADER);
-	auto frag_shader    = gold_shader::load_from_file("shaders/sky_frag.glsl", GL_FRAGMENT_SHADER);
-	auto shader_program = gold_unique_ptr<gold_shader_program>::create(vert_shader, frag_shader);
-
-	model               = gold_unique_ptr<gold_model>::create(mesh, shader_program);
 }
 
-void gold_skybox::render(const gold_camera *camera) const
+gold_unique_ptr<gold_skybox> gold_skybox::create()
+{
+	auto mesh = gold_unique_ptr<gold_mesh>::create(sky_vertices, sky_indices);
+	auto shader_program =
+	    gold_unique_ptr<gold_shader_program>::create("shaders/sky_vert.glsl", "shaders/sky_frag.glsl");
+
+	auto alloc = reinterpret_cast<gold_skybox *>(gold_global_allocate(sizeof(gold_skybox)));
+	new (alloc) gold_skybox(std::move(mesh), std::move(shader_program));
+	return gold_unique_ptr<gold_skybox>(alloc);
+}
+
+void gold_skybox::render(const gold_camera *camera)
 {
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
 	glDepthFunc(GL_LEQUAL);
 
-	model->set_pos(camera->get_eye());
-	model->render(camera);
+	set_position(camera->get_eye());
+	gold_model::render(camera);
 
 	glDepthMask(GL_TRUE);
-}
-
-gold_model *gold_skybox::get_model() const
-{
-	return model.handle();
 }

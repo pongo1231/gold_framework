@@ -1,10 +1,13 @@
 #include "texture.h"
 
+#include "gold/util/file.h"
 #include "gold/util/macros.h"
 
 #include <GL/glew.h>
-#include <jpeg/jpeglib.h>
+//#include <jpeg/jpeglib.h>
 //#include <png.h>
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 
 static gold_vector<unsigned char> read_bmp(const char *filename, int &width, int &height)
 {
@@ -39,16 +42,23 @@ static gold_vector<unsigned char> read_bmp(const char *filename, int &width, int
 	return data;
 }
 
-gold_texture::gold_texture(const char *filename)
+gold_texture::gold_texture(std::string_view filename)
 {
+	if (!gold_file::does_file_exist(filename))
+		gold_assert("gold_texture::gold_texture invalid file passed!");
+
 	glGenTextures(1, &texture_id);
 	glBindTexture(GL_TEXTURE_2D, texture_id);
 
-	auto data = read_bmp(filename, width, height);
-	for (const auto pixel : data)
-		rgb.push(pixel);
+	// auto data = read_bmp(filename, width, height);
+	int channels;
+	auto data = stbi_load(filename.data(), &width, &height, &channels, 0);
+	for (size_t i = 0; i < height + width; i++)
+		rgb.push(data[i]);
+	stbi_image_free(data);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, rgb.data());
+	glGenerateMipmap(GL_TEXTURE_2D);
 
 	/*struct jpeg_decompress_struct cinfo;
 
@@ -93,14 +103,17 @@ gold_texture::gold_texture(const char *filename)
 	//  png_destroy_read_struct(&png, &png_info, NULL);
 }
 
-void gold_texture::bind(const gold_shader_program &program) const
+void gold_texture::bind(const gold_shader_program *program) const
 {
-	glActiveTexture(GL_TEXTURE0);
+	if (!program)
+		gold_assert("gold_texture::bind null shader program");
+
 	glBindTexture(GL_TEXTURE_2D, texture_id);
-	// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, rgb.data());
-	program.set_uniform_longint("u_texture", 0);
-	// glBindVertexArray(VAO);
-	// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_FLOAT, rgb.data());
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	program->set_uniform_longint("u_texture", 0);
 }
 
 void gold_texture::unbind() const

@@ -41,8 +41,8 @@ void main(void)
     float spec = pow(max(dot(view_dir, reflect_dir), 0.0), p_shininess);
     vec3 specular = p_spec_modifier * spec * p_light_col;
 
-    //o_col = texture(u_texture, p_uv);
-    o_col = vec4(p_col.x * (ambient.x + diffuse.x + specular.x),
+    o_col = texture(u_texture, p_uv);
+    /*o_col = vec4(p_col.x * (ambient.x + diffuse.x + specular.x),
         p_col.y * (ambient.y + diffuse.y + specular.y),
-        p_col.z * (ambient.z + diffuse.z + specular.z), p_col.w);
+        p_col.z * (ambient.z + diffuse.z + specular.z), p_col.w);*/
 }

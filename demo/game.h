@@ -20,8 +20,8 @@ class gold_game
 
 	bool did_init = false;
 
-	gold_cube *plane;
-	gold_cube *cube;
+	gold_cube *plane = nullptr;
+	gold_cube *cube = nullptr;
 	gold_unique_ptr<gold_skybox> skybox;
 	gold_unique_ptr<gold_model> model;
 	gold_unique_ptr<gold_model> model2;
