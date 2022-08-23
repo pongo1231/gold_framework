@@ -9,14 +9,14 @@ class gold_graphicsdevice;
 class gold_camera
 {
   private:
-	gold_graphicsdevice *graphics_dev = nullptr;
+	gold_graphicsdevice *graphics_device = nullptr;
 	gold_vector3 eye {};
 	gold_vector3 at {};
 	gold_vector3 up {};
 	float fov_horizontal = 0.f, fov_vertical = 0.f;
 
   public:
-	gold_camera(gold_graphicsdevice *graphics_dev);
+	gold_camera(gold_graphicsdevice *graphics_device);
 
 	void update();
 

@@ -6,8 +6,8 @@
 #include <cstdint>
 #include <map>
 
-#define GOLD_MEMORY_DEFAULT_POOL_SIZE 1024 * 1024 * 102 // 100 MB
-#define GOLD_VECTOR_ALLOC_BLOCK_ELEMENTCOUNT 32ull
+#define GOLD_MEMORY_DEFAULT_POOL_SIZE 1024 * 1024 * 128 // 100 MB
+#define GOLD_VECTOR_ALLOC_BLOCK_ELEMENTCOUNT 8ull
 
 void *gold_global_allocate(size_t size);
 void gold_global_deallocate(void *block);
@@ -178,7 +178,7 @@ class gold_vector
 
 	bool empty() const
 	{
-		return elements_cur_size;
+		return !elements_cur_size;
 	}
 
 	t *data() const

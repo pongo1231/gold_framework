@@ -11,7 +11,7 @@
 #define NPLANE .5f
 #define FPLANE 100.f
 
-gold_camera::gold_camera(gold_graphicsdevice *graphics_dev) : graphics_dev(graphics_dev)
+gold_camera::gold_camera(gold_graphicsdevice *graphics_device) : graphics_device(graphics_device)
 {
 }
 

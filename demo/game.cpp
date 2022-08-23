@@ -58,8 +58,8 @@ error_code gold_game::init(HINSTANCE inst)
 	model->set_position({ 0.f, -10.f, 50.f });
 	model->set_texture(texture);
 
-	// model2 = gold_model::load_from_obj("models/building.obj");
-	// model2->set_pos({ 30.f, 0.f, -30.f });
+	model2 = gold_model::load_from_obj("models/buildingno.obj");
+	model2->set_position({ 30.f, 0.f, -30.f });
 
 	return error_code::success;
 }
@@ -163,7 +163,7 @@ error_code gold_game::run()
 	// model->set_position({ -5.f, -100.f, 100.f });
 	model->render(camera.handle());
 
-	// model2->render(camera.get());
+	model2->render(camera.handle());
 
 	glUseProgram(0);
 

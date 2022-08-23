@@ -9,7 +9,7 @@ class gold_texture
   private:
 	GLuint texture_id = 0;
 	int height = 0, width = 0;
-	gold_vector<std::uint8_t> rgb;
+	gold_unique_ptr<std::uint8_t *> rgb;
 
   public:
 	gold_texture(std::string_view filename);

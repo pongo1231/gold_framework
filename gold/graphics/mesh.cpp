@@ -120,7 +120,7 @@ gold_unique_ptr<gold_mesh> gold_mesh::load_from_obj(std::string_view filename)
 			vertex_uvs.emplace(std::stof(values[1].c_string()), std::stof(values[2].c_string()), 0.f);
 		else if (values[0] == "f")
 		{
-			auto parse_indices = [&](auto &list, uint8_t index)
+			auto parse_indices = [](const auto &values, auto &list, uint8_t index)
 			{
 				gold_vector3 indices;
 				for (std::uint8_t i = 1; i < values.size(); i++)
@@ -142,22 +142,22 @@ gold_unique_ptr<gold_mesh> gold_mesh::load_from_obj(std::string_view filename)
 			};
 
 			// vertices
-			parse_indices(vertex_indices, 0);
+			parse_indices(values, vertex_indices, 0);
 
 			// check with first index, should be the same format throughout
 			// normals (vertex//normal)
 			if (values[1].contains("//"))
-				parse_indices(normal_indices, 1);
+				parse_indices(values, normal_indices, 1);
 			else
 			{
 				auto indices_count = values[1].count("/");
 
 				// texture uv (vertex/uv)
 				if (indices_count > 0)
-					parse_indices(uv_indices, 1);
+					parse_indices(values, uv_indices, 1);
 				// normals (vertex/uv/normal)
 				if (indices_count > 1)
-					parse_indices(normal_indices, 2);
+					parse_indices(values, normal_indices, 2);
 			}
 		}
 	}
@@ -183,13 +183,13 @@ gold_unique_ptr<gold_mesh> gold_mesh::load_from_obj(std::string_view filename)
 		if (!uv_indices.empty())
 		{
 			auto uv_index = uv_indices[i];
-			vertex.tex_u  = vertex_normals[uv_index].x;
-			vertex.tex_v  = vertex_normals[uv_index].y;
+			vertex.tex_u  = vertex_uvs[uv_index].x;
+			vertex.tex_v  = vertex_uvs[uv_index].y;
 		}
 
 		vertex.col_r = 1.f;
-		vertex.col_g = 0.f;
-		vertex.col_b = 0.f;
+		vertex.col_g = 1.f;
+		vertex.col_b = 1.f;
 		vertex.col_a = 1.f;
 
 		vertices.push(vertex);
