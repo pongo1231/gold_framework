@@ -48,17 +48,17 @@ void gold_shader_program::unbind() const
 	glUseProgram(0);
 }
 
-_NODISCARD GLint gold_shader_program::get_perspective_uniform_location() const
+GLint gold_shader_program::get_perspective_uniform_location() const
 {
 	return uniform_matrix_perspective_location;
 }
 
-_NODISCARD GLint gold_shader_program::get_view_uniform_location() const
+GLint gold_shader_program::get_view_uniform_location() const
 {
 	return uniform_matrix_view_location;
 }
 
-_NODISCARD GLint gold_shader_program::get_model_uniform_location() const
+GLint gold_shader_program::get_model_uniform_location() const
 {
 	return uniform_matrix_model_location;
 }

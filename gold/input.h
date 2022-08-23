@@ -1,7 +1,5 @@
 #pragma once
 
-#define _NODISCARD [[nodiscard]]
-
 using BYTE = unsigned char;
 
 class gold_input
@@ -13,8 +11,8 @@ class gold_input
   public:
 	void run();
 
-	_NODISCARD bool is_key_pressed(BYTE key_code) const;
-	_NODISCARD bool is_key_just_pressed(BYTE key_code) const;
+	bool is_key_pressed(BYTE key_code) const;
+	bool is_key_just_pressed(BYTE key_code) const;
 };
 
 inline gold_input gold_input;

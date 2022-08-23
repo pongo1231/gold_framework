@@ -5,11 +5,9 @@
 
 #include <string_view>
 
-#define _NODISCARD [[nodiscard]]
-
 namespace gold_util
 {
-	_NODISCARD inline gold_matrix4 look_at(const gold_vector3 &eye, const gold_vector3 &at, const gold_vector3 &up)
+	inline gold_matrix4 look_at(const gold_vector3 &eye, const gold_vector3 &at, const gold_vector3 &up)
 	{
 		gold_vector3 forward;
 		gold_vector3 side;
@@ -67,7 +65,7 @@ namespace gold_util
 	}
 
 	// Taken from https://openglbook.com/chapter-4-entering-the-third-dimension.html
-	_NODISCARD inline gold_matrix4 create_proj_matrix(float fov_y, float aspect, float n_plane, float f_plane)
+	inline gold_matrix4 create_proj_matrix(float fov_y, float aspect, float n_plane, float f_plane)
 	{
 		auto cotf = [](float _f)
 		{

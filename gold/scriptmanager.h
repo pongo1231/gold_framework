@@ -2,6 +2,7 @@
 
 #include "gold/memory.h"
 #include "gold/util/macros.h"
+#include "gold/util/string.h"
 #include "gold/util/util.h"
 
 extern "C"
@@ -11,7 +12,6 @@ extern "C"
 #include <lua/lualib.h>
 }
 
-#include <string>
 #include <string_view>
 
 class gold_input;
@@ -20,10 +20,10 @@ class scriptmanager
 {
 	struct script
 	{
-		std::string script_name;
+		gold_string script_name;
 		lua_State *lua;
 
-		_NODISCARD bool operator==(std::string_view script_name) const
+		bool operator==(std::string_view script_name) const
 		{
 			return this->script_name == script_name;
 		}

@@ -14,12 +14,12 @@ void gold_input::run()
 	ShowCursor(FALSE);
 }
 
-_NODISCARD bool gold_input::is_key_pressed(BYTE key_code) const
+bool gold_input::is_key_pressed(BYTE key_code) const
 {
 	return key_states[key_code];
 }
 
-_NODISCARD bool gold_input::is_key_just_pressed(BYTE key_code) const
+bool gold_input::is_key_just_pressed(BYTE key_code) const
 {
 	return key_states[key_code] && !key_prev_states[key_code];
 }

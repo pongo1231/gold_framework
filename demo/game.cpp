@@ -186,7 +186,7 @@ error_code gold_game::run()
 
 	std::ostringstream oss;
 	oss << "STRG + G - Skript wechseln / STRG + R - Skripte neu laden | Momentaner Skript: "
-	    << demo_scripts[demo_current_script_index];
+	    << demo_scripts[demo_current_script_index].c_string();
 
 	auto str  = oss.str();
 	auto wstr = std::wstring(str.begin(), str.end());

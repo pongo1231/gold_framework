@@ -4,8 +4,6 @@
 
 #include <glm/glm.hpp>
 
-#define _NODISCARD [[nodiscard]]
-
 class gold_graphicsdevice;
 
 class gold_camera
@@ -23,20 +21,20 @@ class gold_camera
 	void update();
 
 	void set_eye(const gold_vector3 &eye);
-	_NODISCARD const gold_vector3 &get_eye() const;
+	const gold_vector3 &get_eye() const;
 
 	void set_look_at(const gold_vector3 &at);
-	_NODISCARD const gold_vector3 &get_look_at() const;
+	const gold_vector3 &get_look_at() const;
 
 	void set_up(const gold_vector3 &up);
-	_NODISCARD const gold_vector3 &get_up() const;
+	const gold_vector3 &get_up() const;
 
 	void set_fov(float fov_horizontal, float fov_vertical);
-	_NODISCARD float get_fov_horizontal() const;
-	_NODISCARD float get_fov_vertical() const;
+	float get_fov_horizontal() const;
+	float get_fov_vertical() const;
 
 	void move(const gold_vector3 &move);
 
-	_NODISCARD glm::highp_mat4 get_perspective() const;
-	_NODISCARD glm::highp_mat4 get_view() const;
+	glm::highp_mat4 get_perspective() const;
+	glm::highp_mat4 get_view() const;
 };

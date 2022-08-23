@@ -3,6 +3,7 @@
 #include "gold/graphics/model/primitives/factory.h"
 #include "gold/input.h"
 #include "gold/util/file.h"
+#include "gold/util/string.h"
 #include "gold/util/time.h"
 
 #define LOG_IF_ERROR(lua, error, prefix, filename)                                 \
@@ -115,7 +116,7 @@ static int lua_key_just_pressed(lua_State *lua)
 	return 1;
 }
 
-static void register_functions(lua_State *lua, const gold_string &filename)
+static void register_functions(lua_State *lua, std::string_view filename)
 {
 	lua_pushcfunction(lua, lua_print);
 	lua_setglobal(lua, "print");
@@ -166,14 +167,14 @@ void scriptmanager::register_script(std::string_view filename)
 	auto file_size = ftell(file.handle);
 	rewind(file.handle);
 
-	std::string buffer;
+	gold_string buffer;
 	buffer.resize(file_size);
-	fread(buffer.data(), sizeof(char), file_size, file.handle);
+	fread(buffer.c_string(), sizeof(char), file_size, file.handle);
 
 	auto lua = luaL_newstate();
 	luaL_openlibs(lua);
 
-	auto error = luaL_loadbuffer(lua, buffer.data(), file_size, filename.data());
+	auto error = luaL_loadbuffer(lua, buffer.c_string(), file_size, filename.data());
 	LOG_IF_ERROR(lua, error, "Error while loading", filename);
 	if (error)
 		return;
@@ -185,7 +186,7 @@ void scriptmanager::register_script(std::string_view filename)
 	if (error)
 		return;
 
-	script_states.push(script { .script_name = std::string(filename), .lua = lua });
+	script_states.push(script { .script_name = gold_string(filename.data()), .lua = lua });
 }
 
 void scriptmanager::unregister_script(std::string_view filename)

@@ -2,8 +2,6 @@
 
 #include <cmath>
 
-#define _NODISCARD [[nodiscard]]
-
 class gold_matrix4
 {
   public:
@@ -12,7 +10,7 @@ class gold_matrix4
 	/* Following methods created with the help of
 	    https://openglbook.com/chapter-4-entering-the-third-dimension.html */
 
-	_NODISCARD inline gold_matrix4 operator*(const gold_matrix4 &matrix) const
+	inline gold_matrix4 operator*(const gold_matrix4 &matrix) const
 	{
 		gold_matrix4 mtx;
 
@@ -54,12 +52,12 @@ class gold_matrix4
 		return mtx;
 	}
 
-	_NODISCARD inline float operator[](size_t index) const
+	inline float operator[](size_t index) const
 	{
 		return matrix[index];
 	}
 
-	_NODISCARD static inline const gold_matrix4 &identity()
+	static inline const gold_matrix4 &identity()
 	{
 		static const gold_matrix4 identity = { 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f,
 			                                   0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f };
@@ -67,7 +65,7 @@ class gold_matrix4
 		return identity;
 	}
 
-	_NODISCARD inline gold_matrix4 scale(float x, float y, float z) const
+	inline gold_matrix4 scale(float x, float y, float z) const
 	{
 		auto mtx       = identity();
 
@@ -78,7 +76,7 @@ class gold_matrix4
 		return *this * mtx;
 	}
 
-	_NODISCARD inline gold_matrix4 translate(float x, float y, float z) const
+	inline gold_matrix4 translate(float x, float y, float z) const
 	{
 		auto mtx       = identity();
 
@@ -89,7 +87,7 @@ class gold_matrix4
 		return *this * mtx;
 	}
 
-	_NODISCARD inline gold_matrix4 rot_x(float angle) const
+	inline gold_matrix4 rot_x(float angle) const
 	{
 		auto mtx       = identity();
 		auto sine      = sinf(angle);
@@ -103,7 +101,7 @@ class gold_matrix4
 		return *this * mtx;
 	}
 
-	_NODISCARD inline gold_matrix4 rot_y(float angle) const
+	inline gold_matrix4 rot_y(float angle) const
 	{
 		auto mtx       = identity();
 		auto sine      = sinf(angle);
@@ -117,7 +115,7 @@ class gold_matrix4
 		return *this * mtx;
 	}
 
-	_NODISCARD inline gold_matrix4 rot_z(float angle) const
+	inline gold_matrix4 rot_z(float angle) const
 	{
 		auto mtx      = identity();
 		auto sine     = sinf(angle);

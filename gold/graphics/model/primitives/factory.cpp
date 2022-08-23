@@ -1,6 +1,6 @@
 #include "factory.h"
 
-gold_cube *gold_factory::create_cube(const gold_vector3 &pos, const std::string &name, bool is_plane)
+gold_cube *gold_factory::create_cube(const gold_vector3 &pos, const gold_string &name, bool is_plane)
 {
 	if (objects_pool.contains(name))
 	{
@@ -12,7 +12,7 @@ gold_cube *gold_factory::create_cube(const gold_vector3 &pos, const std::string 
 	return objects_pool.at(name).handle();
 }
 
-gold_cube *gold_factory::get_object(const std::string &name) const
+gold_cube *gold_factory::get_object(const gold_string &name) const
 {
 	return objects_pool.contains(name) ? objects_pool.at(name).handle() : nullptr;
 }
