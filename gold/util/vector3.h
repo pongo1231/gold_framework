@@ -18,58 +18,112 @@ class gold_vector3
 		return *(&x + index);
 	}
 
-	gold_vector3 operator+(const gold_vector3 &vec) const
+	gold_vector3 operator+(const gold_vector3 &vector) const
 	{
-		gold_vector3 new_vec;
+		gold_vector3 new_vector;
 
-		new_vec.x = x + vec.x;
-		new_vec.y = y + vec.y;
-		new_vec.z = z + vec.z;
+		new_vector.x = x + vector.x;
+		new_vector.y = y + vector.y;
+		new_vector.z = z + vector.z;
 
-		return new_vec;
+		return new_vector;
 	}
 
-	void operator+=(const gold_vector3 &vec)
+	void operator+=(const gold_vector3 &vector)
 	{
-		x += vec.x;
-		y += vec.y;
-		z += vec.z;
+		x += vector.x;
+		y += vector.y;
+		z += vector.z;
 	}
 
-	gold_vector3 operator-(const gold_vector3 &vec) const
+	gold_vector3 operator+(float value) const
 	{
-		gold_vector3 new_vec;
+		gold_vector3 new_vector;
 
-		new_vec.x = x - vec.x;
-		new_vec.y = y - vec.y;
-		new_vec.z = z - vec.z;
+		new_vector.x = x + value;
+		new_vector.y = y + value;
+		new_vector.z = z + value;
 
-		return new_vec;
+		return new_vector;
 	}
 
-	void operator-=(const gold_vector3 &vec)
+	void operator+=(float value)
 	{
-		x -= vec.x;
-		y -= vec.y;
-		z -= vec.z;
+		x += value;
+		y += value;
+		z += value;
 	}
 
-	gold_vector3 operator*(const gold_vector3 &vec) const
+	gold_vector3 operator-(const gold_vector3 &vector) const
 	{
-		gold_vector3 new_vec;
+		gold_vector3 new_vector;
 
-		new_vec.x = x * vec.x;
-		new_vec.y = y * vec.y;
-		new_vec.z = z * vec.z;
+		new_vector.x = x - vector.x;
+		new_vector.y = y - vector.y;
+		new_vector.z = z - vector.z;
 
-		return new_vec;
+		return new_vector;
 	}
 
-	void operator*=(const gold_vector3 &vec)
+	void operator-=(const gold_vector3 &vector)
 	{
-		x *= vec.x;
-		y *= vec.y;
-		z *= vec.z;
+		x -= vector.x;
+		y -= vector.y;
+		z -= vector.z;
+	}
+
+	gold_vector3 operator-(float value) const
+	{
+		gold_vector3 new_vector;
+
+		new_vector.x = x - value;
+		new_vector.y = y - value;
+		new_vector.z = z - value;
+
+		return new_vector;
+	}
+
+	void operator-=(float value)
+	{
+		x -= value;
+		y -= value;
+		z -= value;
+	}
+
+	gold_vector3 operator*(const gold_vector3 &vector) const
+	{
+		gold_vector3 new_vector;
+
+		new_vector.x = x * vector.x;
+		new_vector.y = y * vector.y;
+		new_vector.z = z * vector.z;
+
+		return new_vector;
+	}
+
+	void operator*=(const gold_vector3 &vector)
+	{
+		x *= vector.x;
+		y *= vector.y;
+		z *= vector.z;
+	}
+
+	gold_vector3 operator*(float value) const
+	{
+		gold_vector3 new_vector;
+
+		new_vector.x = x * value;
+		new_vector.y = y * value;
+		new_vector.z = z * value;
+
+		return new_vector;
+	}
+
+	void operator*=(float value)
+	{
+		x *= value;
+		y *= value;
+		z *= value;
 	}
 
 	gold_vector3 normalize() const
@@ -84,19 +138,19 @@ class gold_vector3
 		return vec;
 	}
 
-	gold_vector3 cross(const gold_vector3 &vec) const
+	gold_vector3 cross(const gold_vector3 &vector) const
 	{
-		gold_vector3 new_vec;
+		gold_vector3 new_vector;
 
-		new_vec.x = y * vec.z - z * vec.y;
-		new_vec.y = z * vec.x - x * vec.z;
-		new_vec.z = x * vec.y - y * vec.x;
+		new_vector.x = y * vector.z - z * vector.y;
+		new_vector.y = z * vector.x - x * vector.z;
+		new_vector.z = x * vector.y - y * vector.x;
 
-		return new_vec;
+		return new_vector;
 	}
 
-	float dot(const gold_vector3 &vec) const
+	float dot(const gold_vector3 &vector) const
 	{
-		return x * vec.x + y * vec.y + z * vec.z;
+		return x * vector.x + y * vector.y + z * vector.z;
 	}
 };

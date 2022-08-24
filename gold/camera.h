@@ -10,9 +10,9 @@ class gold_camera
 {
   private:
 	gold_graphicsdevice *graphics_device = nullptr;
-	gold_vector3 eye {};
-	gold_vector3 at {};
-	gold_vector3 up {};
+	gold_vector3 eye;
+	gold_vector3 at;
+	gold_vector3 up { 0.f, 1.f, 0.f };
 	float fov_horizontal = 0.f, fov_vertical = 0.f;
 
   public:
@@ -27,7 +27,7 @@ class gold_camera
 	const gold_vector3 &get_look_at() const;
 
 	void set_up(const gold_vector3 &up);
-	const gold_vector3 &get_up() const;
+	gold_vector3 get_up() const;
 	gold_vector3 get_forward() const;
 	gold_vector3 get_left() const;
 
@@ -36,6 +36,7 @@ class gold_camera
 	float get_fov_vertical() const;
 
 	void move(const gold_vector3 &move);
+	void move_relative(const gold_vector3 &move);
 
 	glm::highp_mat4 get_perspective() const;
 	glm::highp_mat4 get_view() const;

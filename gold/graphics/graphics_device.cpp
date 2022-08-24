@@ -1,6 +1,7 @@
 #include "graphics_device.h"
 
 #include "gold/error_code.h"
+#include "gold/util/assert.h"
 #include "gold/util/macros.h"
 #include "gold/util/matrix.h"
 #include "gold/util/time.h"
@@ -18,13 +19,13 @@ gold_graphicsdevice::~gold_graphicsdevice()
 		wglDeleteContext(gl_context);
 }
 
-error_code gold_graphicsdevice::init(HINSTANCE inst)
+error_code gold_graphicsdevice::init(HINSTANCE inst, size_t width, size_t height, std::wstring_view title_name)
 {
 	if (gl_context)
 		return error_code::already_exists;
 
 	WNDCLASSEX wnd_class {};
-	wnd_class.lpszClassName = DEMO_CLASSNAME;
+	wnd_class.lpszClassName = GOLD_CLASSNAME;
 	wnd_class.hInstance     = inst;
 	wnd_class.lpfnWndProc   = wnd_proc;
 	wnd_class.hCursor       = LoadCursor(0, IDC_ARROW);
@@ -32,9 +33,20 @@ error_code gold_graphicsdevice::init(HINSTANCE inst)
 	wnd_class.cbSize        = sizeof(WNDCLASSEX);
 	RegisterClassEx(&wnd_class);
 
-	if (FAILED(wnd = CreateWindowEx(NULL, DEMO_CLASSNAME, DEMO_TITLENAME,
-	                                WS_VISIBLE | WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU, CW_USEDEFAULT, CW_USEDEFAULT,
-	                                1600, 900, NULL, NULL, inst, NULL)))
+	auto screen_width  = GetSystemMetrics(SM_CXSCREEN);
+	auto screen_height = GetSystemMetrics(SM_CYSCREEN);
+
+	if (width > screen_width)
+		gold_assert("gold_graphicsdevice::init width > screen width!");
+	if (height > screen_height)
+		gold_assert("gold_graphicsdevice::init height > screen height!");
+
+	DWORD flags = WS_VISIBLE | WS_POPUP;
+	if (width != screen_width || height != screen_height)
+		flags |= WS_CAPTION | WS_SYSMENU;
+
+	if (FAILED(wnd = CreateWindowEx(NULL, GOLD_CLASSNAME, title_name.data(), flags, CW_USEDEFAULT, CW_USEDEFAULT, width,
+	                                height, NULL, NULL, inst, NULL)))
 		return error_code::graphics_init_windowcreate_failed;
 
 	// Taken from https://www.khronos.org/opengl/wiki/Creating_an_OpenGL_Context_(WGL)

@@ -6,6 +6,8 @@
 #include <GL/glew.h>
 #include <windows.h>
 
+#include <string_view>
+
 enum class error_code;
 
 class gold_graphicsdevice
@@ -24,7 +26,7 @@ class gold_graphicsdevice
   public:
 	~gold_graphicsdevice();
 
-	error_code init(HINSTANCE instance);
+	error_code init(HINSTANCE instance, size_t width, size_t height, std::wstring_view title_name = L"Gold Game");
 	error_code begin_render();
 	error_code end_render();
 

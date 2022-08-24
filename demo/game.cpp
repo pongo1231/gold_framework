@@ -30,7 +30,7 @@ error_code gold_game::init(HINSTANCE inst)
 
 	error_code error_code = error_code::success;
 
-	if ((error_code = graphics_device->init(inst)) != error_code::success)
+	if ((error_code = graphics_device->init(inst, 1920, 1080)) != error_code::success)
 		return error_code;
 
 	texture = gold_ref_ptr<gold_texture>::create("textures/wall.jpg");
@@ -73,21 +73,22 @@ error_code gold_game::run()
 	const auto &camera_pos     = camera->get_eye();
 	const auto &camera_look_at = camera->get_look_at();
 
-	const auto &forward        = camera->get_forward();
-	const auto &left           = camera->get_left();
-
 	camera->set_eye({ std::max(-200.f, std::min(camera_pos.x, 200.f)), std::max(-200.f, std::min(camera_pos.y, 200.f)),
 	                  std::max(-200.f, std::min(camera_pos.z, 200.f)) });
 
+	gold_vector3 move;
+
 	if (gold_input.is_key_pressed(0x57)) // W
-		camera->move({ forward.x * -.1f, forward.y * -.1f, forward.z * -.1f });
-	else if (gold_input.is_key_pressed(0x53)) // S
-		camera->move({ forward.x * .1f, forward.y * .1f, forward.z * .1f });
+		move.x -= .1f;
+	if (gold_input.is_key_pressed(0x53)) // S
+		move.x += .1f;
 
 	if (gold_input.is_key_pressed(0x41)) // A
-		camera->move({ left.x * -.1f, left.y * -.1f, left.z * -.1f });
+		move.z -= .1f;
 	else if (gold_input.is_key_pressed(0x44)) // D
-		camera->move({ left.x * .1f, left.y * .1f, left.z * .1f });
+		move.z += .1f;
+
+	camera->move_relative(move);
 
 	if (gold_input.is_key_pressed(VK_CONTROL))
 	{
