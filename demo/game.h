@@ -1,11 +1,6 @@
 #pragma once
 
-#include "gold/camera.h"
-#include "gold/graphics/graphics_device.h"
-#include "gold/graphics/model/primitives/cube.h"
-#include "gold/graphics/model/primitives/skybox.h"
-#include "gold/input.h"
-#include "gold/memory.h"
+#include "gold/gold.h"
 
 struct HINSTANCE__;
 typedef HINSTANCE__ *HINSTANCE;
@@ -20,8 +15,8 @@ class gold_game
 
 	bool did_init = false;
 
-	gold_cube *plane = nullptr;
-	gold_cube *cube = nullptr;
+	gold_weak_ptr<gold_entity> plane;
+	gold_weak_ptr<gold_entity> cube;
 	gold_unique_ptr<gold_skybox> skybox;
 	gold_unique_ptr<gold_model> model;
 	gold_unique_ptr<gold_model> model2;

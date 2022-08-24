@@ -13,6 +13,11 @@ void gold_entity::update(const gold_camera *camera)
 	model->render(camera);
 }
 
+gold_weak_ptr<gold_model> gold_entity::get_model() const
+{
+	return model.get_weak_ptr();
+}
+
 void gold_entity::set_position(const gold_vector3 &position)
 {
 	this->position = position;

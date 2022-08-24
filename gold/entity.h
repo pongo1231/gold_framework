@@ -15,6 +15,8 @@ class gold_entity
 
 	void update(const gold_camera *camera);
 
+	gold_weak_ptr<gold_model> get_model() const;
+
 	void set_position(const gold_vector3 &position);
 	const gold_vector3 &get_position() const;
 

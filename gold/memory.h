@@ -315,19 +315,131 @@ inline void gold_global_deallocate(void *block)
 
 template <typename t, void *(*allocator)(size_t) = gold_global_allocate,
           void (*deallocator)(void *) = gold_global_deallocate>
+class gold_weak_ptr
+{
+	t *data            = nullptr;
+	size_t *weak_count = nullptr;
+	bool *weak_valid   = nullptr;
+
+  public:
+	gold_weak_ptr(t *data = nullptr) : data(data)
+	{
+	}
+
+	gold_weak_ptr(t *data, size_t *weak_count, bool *weak_valid)
+	    : data(data), weak_count(weak_count), weak_valid(weak_valid)
+	{
+		if (weak_count)
+			(*weak_count)++;
+	}
+
+	~gold_weak_ptr()
+	{
+		if (weak_count && !--(*weak_count))
+		{
+			deallocator(weak_count);
+			deallocator(weak_valid);
+		}
+	}
+
+	template <typename ptrtype>
+	gold_weak_ptr(const gold_weak_ptr<ptrtype> &ptr)
+	    : data(ptr.handle()), weak_count(ptr.get_weak_count()), weak_valid(ptr.get_weak_valid())
+	{
+		if (weak_count)
+			(*weak_count)++;
+	}
+
+	template <typename ptrtype> gold_weak_ptr &operator=(const gold_weak_ptr<ptrtype> &ptr)
+	{
+		if (weak_count && !--(*weak_count))
+			deallocator(weak_count);
+
+		data       = ptr.handle();
+		weak_count = ptr.get_weak_count();
+		if (weak_count)
+			(*weak_count)++;
+		weak_valid = ptr.get_weak_valid();
+
+		return *this;
+	}
+
+	operator bool() const
+	{
+		return weak_valid && *weak_valid && data;
+	}
+
+	t &operator*() const
+	{
+		if (!weak_valid || !*weak_valid)
+			return nullptr;
+
+		return *data;
+	}
+
+	t *operator->() const
+	{
+		if (!weak_valid || !*weak_valid)
+			return nullptr;
+
+		return data;
+	}
+
+	t *handle() const
+	{
+		if (!weak_valid || !*weak_valid)
+			return nullptr;
+
+		return data;
+	}
+
+	size_t *get_weak_count() const
+	{
+		return weak_count;
+	}
+
+	bool *get_weak_valid() const
+	{
+		return weak_valid;
+	}
+};
+
+template <typename t, void *(*allocator)(size_t) = gold_global_allocate,
+          void (*deallocator)(void *) = gold_global_deallocate>
 class gold_unique_ptr
 {
-	t *data = nullptr;
+	t *data            = nullptr;
+	size_t *weak_count = nullptr;
+	bool *weak_valid   = nullptr;
 
   public:
 	gold_unique_ptr(t *data = nullptr) : data(data)
 	{
+		if (data)
+		{
+			weak_count    = reinterpret_cast<size_t *>(allocator(sizeof(size_t)));
+			*weak_count = 1;
+
+			weak_valid    = reinterpret_cast<bool *>(allocator(sizeof(bool)));
+			*weak_valid = true;
+		}
 	}
 
 	~gold_unique_ptr()
 	{
 		if (data)
 			deallocator(data);
+
+		if (weak_count)
+		{
+			if (--(* weak_count))
+				*weak_valid = false;
+			else
+			{
+				deallocator(weak_count);
+				deallocator(weak_valid);
+			}
+		}
 	}
 
 	gold_unique_ptr(const gold_unique_ptr &)            = delete;
@@ -336,7 +448,7 @@ class gold_unique_ptr
 
 	template <typename ptrtype> gold_unique_ptr(gold_unique_ptr<ptrtype> &&ptr)
 	{
-		data = ptr.release();
+		data = ptr.release(&weak_count, &weak_valid);
 	}
 
 	template <typename ptrtype> gold_unique_ptr &operator=(gold_unique_ptr<ptrtype> &&ptr) noexcept
@@ -344,7 +456,13 @@ class gold_unique_ptr
 		if (data && data != ptr.handle())
 			deallocator(data);
 
-		data = ptr.release();
+		if (weak_count && !*weak_count)
+		{
+			deallocator(weak_count);
+			deallocator(weak_valid);
+		}
+
+		data = ptr.release(&weak_count, &weak_valid);
 
 		return *this;
 	}
@@ -368,26 +486,62 @@ class gold_unique_ptr
 	{
 		if (data)
 			deallocator(data);
+
+		if (weak_count)
+		{
+			if (--( * weak_count))
+				*weak_valid = false;
+			else
+			{
+				deallocator(weak_count);
+				deallocator(weak_valid);
+			}
+		}
+
 		data = new_data;
+		if (data)
+		{
+			weak_count    = reinterpret_cast<size_t *>(allocator(sizeof(size_t)));
+			(*weak_count) = 1;
+
+			weak_valid    = reinterpret_cast<bool *>(allocator(sizeof(bool)));
+			(*weak_valid) = true;
+		}
 	}
 
 	void clear()
 	{
-		if (data)
-			deallocator(data);
-		data = nullptr;
+		set(nullptr);
 	}
 
-	t *release()
+	t *release(size_t **weak_count = nullptr, bool **weak_valid = nullptr)
 	{
 		auto old_data = data;
 		data          = nullptr;
+
+		if (weak_count)
+		{
+			*weak_count       = this->weak_count;
+			this->weak_count = nullptr;
+		}
+
+		if (weak_valid)
+		{
+			*weak_valid       = this->weak_valid;
+			this->weak_valid = nullptr;
+		}
+
 		return old_data;
 	}
 
 	t *handle() const
 	{
 		return data;
+	}
+
+	gold_weak_ptr<t> get_weak_ptr() const
+	{
+		return gold_weak_ptr<t>(data, weak_count, weak_valid);
 	}
 
 	template <class... argtype> static gold_unique_ptr create(argtype &&...args)
@@ -402,48 +556,82 @@ template <typename t, void *(*allocator)(size_t) = gold_global_allocate,
           void (*deallocator)(void *) = gold_global_deallocate>
 class gold_ref_ptr
 {
-	t *data          = nullptr;
-	size_t *refcount = nullptr;
+	t *data            = nullptr;
+	size_t *ref_count  = nullptr;
+	size_t *weak_count = nullptr;
+	bool *weak_valid   = nullptr;
 
   public:
 	gold_ref_ptr(t *data = nullptr) : data(data)
 	{
 		if (data)
 		{
-			refcount    = reinterpret_cast<size_t *>(allocator(sizeof(size_t)));
-			(*refcount) = 1;
+			ref_count     = reinterpret_cast<size_t *>(allocator(sizeof(size_t)));
+			(*ref_count)  = 1;
+
+			weak_count    = reinterpret_cast<size_t *>(allocator(sizeof(size_t)));
+			(*weak_count) = 1;
+
+			weak_valid    = reinterpret_cast<bool *>(allocator(sizeof(bool)));
+			(*weak_valid) = true;
 		}
 	}
 
 	~gold_ref_ptr()
 	{
-		if (refcount && !--(*refcount))
+		if (ref_count && !--(*ref_count))
 		{
-			deallocator(refcount);
+			deallocator(ref_count);
 			if (data)
 				deallocator(data);
 		}
+
+		if (weak_count)
+		{
+			if (*weak_count--)
+				*weak_valid = false;
+			else
+			{
+				deallocator(weak_count);
+				deallocator(weak_valid);
+			}
+		}
 	}
 
-	template <typename ptrtype> gold_ref_ptr(const gold_ref_ptr<ptrtype> &ptr) : data(ptr.data), refcount(ptr.refcount)
+	template <typename ptrtype>
+	gold_ref_ptr(const gold_ref_ptr<ptrtype> &ptr)
+	    : data(ptr.data), ref_count(ptr.ref_count), weak_count(ptr.weak_count)
 	{
-		if (refcount)
-			(*refcount)++;
+		if (ref_count)
+			(*ref_count)++;
 	}
 
 	template <typename ptrtype> gold_ref_ptr &operator=(const gold_ref_ptr<ptrtype> &ptr)
 	{
-		if (refcount && !--(*refcount))
+		if (ref_count && !--(*ref_count))
 		{
-			deallocator(refcount);
+			deallocator(ref_count);
 			if (data)
 				deallocator(data);
 		}
 
-		data     = ptr.data;
-		refcount = ptr.refcount;
-		if (refcount)
-			(*refcount)++;
+		if (weak_count)
+		{
+			if ((*weak_count))
+				*weak_count = false;
+			else
+			{
+				deallocator(weak_count);
+				deallocator(weak_valid);
+			}
+		}
+
+		data      = ptr.data;
+		ref_count = ptr.ref_count;
+		if (ref_count)
+			(*ref_count)++;
+		weak_count = ptr.weak_count;
+		weak_valid = ptr.weak_valid;
 
 		return *this;
 	}
@@ -466,6 +654,11 @@ class gold_ref_ptr
 	t *handle() const
 	{
 		return data;
+	}
+
+	gold_weak_ptr<t> get_weak_ptr() const
+	{
+		return gold_weak_ptr<t>(data, weak_count, weak_valid);
 	}
 
 	static gold_ref_ptr create(auto &&...args)

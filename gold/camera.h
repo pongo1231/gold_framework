@@ -1,10 +1,12 @@
 #pragma once
 
+#include "gold/memory.h"
 #include "gold/util/vector3.h"
 
 #include <glm/glm.hpp>
 
 class gold_graphicsdevice;
+class gold_entity;
 
 class gold_camera
 {
@@ -15,16 +17,18 @@ class gold_camera
 	gold_vector3 up { 0.f, 1.f, 0.f };
 	float fov_horizontal = 0.f, fov_vertical = 0.f;
 
+	gold_weak_ptr<gold_entity> entity_attached_to;
+
   public:
 	gold_camera(gold_graphicsdevice *graphics_device);
 
 	void update();
 
 	void set_eye(const gold_vector3 &eye);
-	const gold_vector3 &get_eye() const;
+	gold_vector3 get_eye() const;
 
 	void set_look_at(const gold_vector3 &at);
-	const gold_vector3 &get_look_at() const;
+	gold_vector3 get_look_at() const;
 
 	void set_up(const gold_vector3 &up);
 	gold_vector3 get_up() const;
@@ -40,4 +44,9 @@ class gold_camera
 
 	glm::highp_mat4 get_perspective() const;
 	glm::highp_mat4 get_view() const;
+
+	void attach_to_entity(gold_weak_ptr<gold_entity> entity);
+	void detach_from_entity();
+	bool is_attached_to_entity() const;
+	gold_weak_ptr<gold_entity> get_entity_attached_to() const;
 };

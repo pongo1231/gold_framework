@@ -1,7 +1,5 @@
 #include "game.h"
 
-#include "gold/gold.h"
-
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
@@ -28,23 +26,24 @@ error_code gold_game::init(HINSTANCE inst)
 
 	error_code error_code = error_code::success;
 
-	if ((error_code = graphics_device->init(inst, 1920, 1080)) != error_code::success)
+	if ((error_code = graphics_device->init(inst, 1600, 900)) != error_code::success)
 		return error_code;
 
 	texture = gold_ref_ptr<gold_texture>::create("textures/wall.jpg");
 
-	plane   = gold_factory.create_model<gold_model_type::cube, gold_cube>("plane");
+	plane   = gold_factory.create_entity<gold_model_type::cube>("plane");
 	plane->set_position({ 0.f, -2.f, 0.f });
-	plane->set_scale({ 10.f, 1.f, 10.f });
+	plane->get_model()->set_scale({ 10.f, 1.f, 10.f });
 	// plane->set_specular_multiplier(0.f);
 	// plane->set_shininess(0.f);
-	plane->set_texture(texture);
+	plane->get_model()->set_texture(texture);
 
-	cube = gold_factory.create_model<gold_model_type::cube, gold_cube>("cube");
+	cube = gold_factory.create_entity<gold_model_type::cube>("cube");
 	cube->set_position({ 0.f, 0.f, -3.f });
 	// cube->set_specular_multiplier(1.f);
 	// cube->set_shininess(10.f);
-	cube->set_texture(texture);
+	cube->get_model()->set_texture(texture);
+	//camera->attach_to_entity(cube);
 
 	skybox = gold_unique_ptr<gold_skybox>(gold_skybox::create());
 	// gold_factory.create_model<gold_model_type::skybox, gold_skybox>("skybox");
@@ -143,9 +142,9 @@ error_code gold_game::run()
 	// cube->get_model()->set_rotation(GetTickCount64() * .01f * glm::radians(45.f), { 1.f, 1.f, 1.f }, true);
 	//  cube_1->get_model()->rotate(GetTickCount64() * .001f * glm::radians(45.f), { 1.f, 1.f, 1.f }, true);
 	//  cube_1->get_model()->set_pos(cube_1->get_model()->get_pos() + gold_vector3(0.f, 0.f, 0.01f));
-	cube->render(camera.handle());
+	cube->update(camera.handle());
 
-	plane->render(camera.handle());
+	plane->update(camera.handle());
 
 	// model->set_position({ -5.f, -100.f, 100.f });
 	auto &model_rot = model->get_rotation();

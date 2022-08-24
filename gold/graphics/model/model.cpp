@@ -15,8 +15,8 @@ gold_model::gold_model(gold_unique_ptr<gold_mesh> &&mesh, gold_unique_ptr<gold_s
     : mesh(std::move(mesh)), shader_program(std::move(shader_program))
 {
 	this->shader_program->bind();
-	this->shader_program->set_uniform_vector3("uni_light_pos", { 0.f, 0.f, 0.f });
-	this->shader_program->set_uniform_vector3("uni_light_col", { .0f, .5f, .5f });
+	this->shader_program->set_uniform_vector3("uni_light_pos", { 0.f, 20.f, 0.f });
+	this->shader_program->set_uniform_vector3("uni_light_col", { 1.f, 1.f, 1.f });
 	this->shader_program->set_uniform_float("uni_ambient_modifier", .5f);
 	this->shader_program->set_uniform_float("uni_spec_modifier", specular_multiplier);
 	this->shader_program->set_uniform_float("uni_shininess", shininess);

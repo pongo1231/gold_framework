@@ -1,5 +1,6 @@
 #include "camera.h"
 
+#include "gold/entity.h"
 #include "gold/graphics/graphics_device.h"
 #include "gold/util/matrix.h"
 #include "gold/util/util.h"
@@ -24,9 +25,9 @@ void gold_camera::set_eye(const gold_vector3 &eye)
 	this->eye = eye;
 }
 
-const gold_vector3 &gold_camera::get_eye() const
+gold_vector3 gold_camera::get_eye() const
 {
-	return eye;
+	return entity_attached_to ? entity_attached_to->get_position() + eye : eye;
 }
 
 void gold_camera::set_look_at(const gold_vector3 &at)
@@ -34,9 +35,9 @@ void gold_camera::set_look_at(const gold_vector3 &at)
 	this->at = at;
 }
 
-const gold_vector3 &gold_camera::get_look_at() const
+gold_vector3 gold_camera::get_look_at() const
 {
-	return at;
+	return entity_attached_to ? entity_attached_to->get_position() + at : at;
 }
 
 void gold_camera::set_up(const gold_vector3 &up)
@@ -106,4 +107,24 @@ glm::highp_mat4 gold_camera::get_perspective() const
 glm::highp_mat4 gold_camera::get_view() const
 {
 	return glm::lookAt(glm::vec3(eye.x, eye.y, eye.z), glm::vec3(at.x, at.y, at.z), glm::vec3(up.x, up.y, up.z));
+}
+
+void gold_camera::attach_to_entity(gold_weak_ptr<gold_entity> entity)
+{
+	entity_attached_to = entity;
+}
+
+void gold_camera::detach_from_entity()
+{
+	entity_attached_to = nullptr;
+}
+
+bool gold_camera::is_attached_to_entity() const
+{
+	return entity_attached_to;
+}
+
+gold_weak_ptr<gold_entity> gold_camera::get_entity_attached_to() const
+{
+	return entity_attached_to;
 }
