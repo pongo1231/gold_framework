@@ -29,5 +29,8 @@ class gold_mesh
 	void render() const;
 	void set_triangle_strip(bool state);
 
+	const gold_vector<gold_vertex> &get_vertices() const;
+	const gold_vector<std::uint32_t> &get_indices() const;
+
 	static gold_unique_ptr<gold_mesh> load_from_obj(std::string_view filename);
 };

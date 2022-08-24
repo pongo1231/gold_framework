@@ -15,8 +15,9 @@ class gold_game
 
 	bool did_init = false;
 
-	gold_weak_ptr<gold_entity> plane;
-	gold_weak_ptr<gold_entity> cube;
+	gold_entity* plane;
+	gold_entity* cube;
+	gold_entity *player;
 	gold_unique_ptr<gold_skybox> skybox;
 	gold_unique_ptr<gold_model> model;
 	gold_unique_ptr<gold_model> model2;

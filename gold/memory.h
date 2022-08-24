@@ -432,7 +432,7 @@ class gold_unique_ptr
 
 		if (weak_count)
 		{
-			if (--(* weak_count))
+			if (--(*weak_count))
 				*weak_valid = false;
 			else
 			{
@@ -449,6 +449,8 @@ class gold_unique_ptr
 	template <typename ptrtype> gold_unique_ptr(gold_unique_ptr<ptrtype> &&ptr)
 	{
 		data = ptr.release(&weak_count, &weak_valid);
+		if (weak_count)
+			(*weak_count)++;
 	}
 
 	template <typename ptrtype> gold_unique_ptr &operator=(gold_unique_ptr<ptrtype> &&ptr) noexcept
@@ -463,6 +465,8 @@ class gold_unique_ptr
 		}
 
 		data = ptr.release(&weak_count, &weak_valid);
+		if (weak_count)
+			(*weak_count)++;
 
 		return *this;
 	}
@@ -588,7 +592,7 @@ class gold_ref_ptr
 
 		if (weak_count)
 		{
-			if (*weak_count--)
+			if (--( * weak_count))
 				*weak_valid = false;
 			else
 			{
@@ -604,6 +608,9 @@ class gold_ref_ptr
 	{
 		if (ref_count)
 			(*ref_count)++;
+
+		if (weak_count)
+			(*weak_count)++;
 	}
 
 	template <typename ptrtype> gold_ref_ptr &operator=(const gold_ref_ptr<ptrtype> &ptr)
@@ -631,6 +638,8 @@ class gold_ref_ptr
 		if (ref_count)
 			(*ref_count)++;
 		weak_count = ptr.weak_count;
+		if (weak_count)
+			(*weak_count)++;
 		weak_valid = ptr.weak_valid;
 
 		return *this;

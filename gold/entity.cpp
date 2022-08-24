@@ -1,6 +1,7 @@
 #include "entity.h"
 
 #include "gold/camera.h"
+#include "gold/graphics/model/factory.h"
 
 gold_entity::gold_entity(gold_unique_ptr<gold_model> &&model) : model(std::move(model))
 {
@@ -8,9 +9,10 @@ gold_entity::gold_entity(gold_unique_ptr<gold_model> &&model) : model(std::move(
 
 void gold_entity::update(const gold_camera *camera)
 {
-	model->set_position(position);
-	model->set_rotation(rotation);
-	model->render(camera);
+	if (camera->get_parent() != this)
+		model->render(camera);
+
+	velocity.y -= 
 }
 
 gold_weak_ptr<gold_model> gold_entity::get_model() const
@@ -20,22 +22,37 @@ gold_weak_ptr<gold_model> gold_entity::get_model() const
 
 void gold_entity::set_position(const gold_vector3 &position)
 {
-	this->position = position;
+	model->set_position(position);
 }
 
 const gold_vector3 &gold_entity::get_position() const
 {
-	return position;
+	return model->get_position();
 }
 
 void gold_entity::set_rotation(const gold_vector3 &rotation)
 {
-	this->rotation = rotation;
+	model->set_rotation(rotation);
 }
 
 const gold_vector3 &gold_entity::get_rotation() const
 {
-	return rotation;
+	return model->get_rotation();
+}
+
+void gold_entity::add_velocity(const gold_vector3 &velocity)
+{
+	this->velocity += velocity;
+}
+
+void gold_entity::reset_velocity()
+{
+	velocity = {};
+}
+
+const gold_vector3 &gold_entity::get_velocity() const
+{
+	return velocity;
 }
 
 gold_vector3 gold_entity::get_up() const
@@ -61,7 +78,21 @@ gold_vector3 gold_entity::get_left() const
 
 void gold_entity::move(const gold_vector3 &offset)
 {
-	position += offset;
+	auto old_position = get_position();
+	set_position(old_position + offset);
+
+	for (const auto &[name, entity] : gold_factory.get_all_entities())
+	{
+		if (entity.handle() == this)
+			continue;
+
+		if (is_colliding_with(*entity))
+		{
+			set_position(old_position);
+			velocity = {};
+			break;
+		}
+	}
 }
 
 void gold_entity::move_relative(const gold_vector3 &offset)
@@ -70,5 +101,24 @@ void gold_entity::move_relative(const gold_vector3 &offset)
 	const auto &up      = get_up();
 	const auto &left    = get_left();
 
-	position += (forward * offset.x) + (up * offset.y) + (left * offset.z);
+	auto old_position   = get_position();
+	set_position(old_position + (forward * offset.x) + (up * offset.y) + (left * offset.z));
+
+	for (const auto &[name, entity] : gold_factory.get_all_entities())
+	{
+		if (entity.handle() == this)
+			continue;
+
+		if (is_colliding_with(*entity))
+		{
+			set_position(old_position);
+			velocity = {};
+			break;
+		}
+	}
+}
+
+bool gold_entity::is_colliding_with(const gold_entity &entity) const
+{
+	return model->is_colliding_with(*entity.model);
 }

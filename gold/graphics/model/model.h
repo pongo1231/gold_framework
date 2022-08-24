@@ -19,8 +19,11 @@ class gold_model
 	gold_vector3 rotation;
 	gold_vector3 m_scale { 1.f, 1.f, 1.f };
 	gold_ref_ptr<gold_texture> texture;
-	float specular_multiplier = 8.f;
-	float shininess           = 8.f;
+	float specular_multiplier = 2.f;
+	float shininess           = 1.f;
+
+	gold_vector3 box_min;
+	gold_vector3 box_max;
 
   public:
 	gold_model() = default;
@@ -45,6 +48,9 @@ class gold_model
 
 	void set_specular_multiplier(float specular_multiplier);
 	void set_shininess(float shininess);
+
+	void get_bounding_box(gold_vector3 &min, gold_vector3 &max) const;
+	bool is_colliding_with(const gold_model &model) const;
 
 	static gold_unique_ptr<gold_model> load_from_obj(std::string_view filename);
 };

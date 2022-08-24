@@ -27,7 +27,7 @@ void gold_camera::set_eye(const gold_vector3 &eye)
 
 gold_vector3 gold_camera::get_eye() const
 {
-	return entity_attached_to ? entity_attached_to->get_position() + eye : eye;
+	return parent ? parent->get_position() + eye : eye;
 }
 
 void gold_camera::set_look_at(const gold_vector3 &at)
@@ -37,7 +37,7 @@ void gold_camera::set_look_at(const gold_vector3 &at)
 
 gold_vector3 gold_camera::get_look_at() const
 {
-	return entity_attached_to ? entity_attached_to->get_position() + at : at;
+	return parent ? parent->get_position() + at : at;
 }
 
 void gold_camera::set_up(const gold_vector3 &up)
@@ -106,25 +106,40 @@ glm::highp_mat4 gold_camera::get_perspective() const
 
 glm::highp_mat4 gold_camera::get_view() const
 {
+	const auto &eye = get_eye();
 	return glm::lookAt(glm::vec3(eye.x, eye.y, eye.z), glm::vec3(at.x, at.y, at.z), glm::vec3(up.x, up.y, up.z));
 }
 
-void gold_camera::attach_to_entity(gold_weak_ptr<gold_entity> entity)
+void gold_camera::attach_to_entity(gold_entity* entity)
 {
-	entity_attached_to = entity;
+	parent = entity;
 }
 
-void gold_camera::detach_from_entity()
+void gold_camera::detach_from_parent()
 {
-	entity_attached_to = nullptr;
+	parent = nullptr;
 }
 
-bool gold_camera::is_attached_to_entity() const
+bool gold_camera::has_parent() const
 {
-	return entity_attached_to;
+	return parent;
 }
 
-gold_weak_ptr<gold_entity> gold_camera::get_entity_attached_to() const
+gold_entity *gold_camera::get_parent() const
 {
-	return entity_attached_to;
+	return parent;
+}
+
+void gold_camera::move_parent_relatively(const gold_vector3 &move, bool ignore_up)
+{
+	if (!parent)
+		return;
+
+	const auto &forward = get_forward();
+	const auto &up      = get_up();
+	const auto &left    = get_left();
+
+	auto offset = gold_vector3(forward.x * move.x, forward.y * move.x * !ignore_up, forward.z * move.x) + (up * move.y)
+	            + (left * move.z);
+	parent->move(offset);
 }

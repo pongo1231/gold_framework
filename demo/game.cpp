@@ -21,7 +21,7 @@ error_code gold_game::init(HINSTANCE inst)
 	graphics_device = gold_unique_ptr<gold_graphicsdevice>::create();
 
 	camera          = gold_unique_ptr<gold_camera>::create(graphics_device.handle());
-	camera->set_eye({ 0.f, 10.f, -20.f });
+	//camera->set_eye({ 0.f, 10.f, -20.f });
 	camera->set_fov(45.f, 1280.f / 720.f);
 
 	error_code error_code = error_code::success;
@@ -43,7 +43,11 @@ error_code gold_game::init(HINSTANCE inst)
 	// cube->set_specular_multiplier(1.f);
 	// cube->set_shininess(10.f);
 	cube->get_model()->set_texture(texture);
-	//camera->attach_to_entity(cube);
+	camera->attach_to_entity(cube);
+
+	player = gold_factory.create_entity<gold_model_type::cube>("player");
+	player->set_position({ 0.f, 1.f, -20.f });
+	camera->attach_to_entity(player);
 
 	skybox = gold_unique_ptr<gold_skybox>(gold_skybox::create());
 	// gold_factory.create_model<gold_model_type::skybox, gold_skybox>("skybox");
@@ -51,9 +55,10 @@ error_code gold_game::init(HINSTANCE inst)
 	for (const auto &script_name : demo_scripts)
 		scriptmanager.register_script(script_name);
 
-	model = gold_model::load_from_obj("models/buildingno.obj");
-	model->set_position({ 0.f, -10.f, 50.f });
+	model = gold_model::load_from_obj("models/cube.obj");
+	model->set_position({ 0.f, -10.f, 5.f });
 	model->set_texture(texture);
+	model->set_scale({ 10.f, 10.f, 10.f });
 
 	model2 = gold_model::load_from_obj("models/buildingno.obj");
 	model2->set_position({ 30.f, 0.f, -30.f });
@@ -70,10 +75,18 @@ error_code gold_game::run()
 	const auto &camera_pos     = camera->get_eye();
 	const auto &camera_look_at = camera->get_look_at();
 
-	camera->set_eye({ std::max(-200.f, std::min(camera_pos.x, 200.f)), std::max(-200.f, std::min(camera_pos.y, 200.f)),
-	                  std::max(-200.f, std::min(camera_pos.z, 200.f)) });
+	//camera->set_eye({ std::max(-200.f, std::min(camera_pos.x, 200.f)), std::max(-200.f, std::min(camera_pos.y, 200.f)),
+	//                  std::max(-200.f, std::min(camera_pos.z, 200.f)) });
 
 	gold_vector3 move;
+
+	if (gold_input.is_key_just_pressed(VK_SPACE))
+	{
+		if (camera->has_parent())
+			camera->detach_from_parent();
+		else
+			camera->attach_to_entity(player);
+	}
 
 	if (gold_input.is_key_pressed(0x57)) // W
 		move.x -= .1f;
@@ -85,7 +98,8 @@ error_code gold_game::run()
 	else if (gold_input.is_key_pressed(0x44)) // D
 		move.z += .1f;
 
-	camera->move_relative(move);
+	//camera->move_relative(move);
+	camera->move_parent_relatively(move, true);
 
 	if (gold_input.is_key_pressed(VK_CONTROL))
 	{
@@ -143,6 +157,8 @@ error_code gold_game::run()
 	//  cube_1->get_model()->rotate(GetTickCount64() * .001f * glm::radians(45.f), { 1.f, 1.f, 1.f }, true);
 	//  cube_1->get_model()->set_pos(cube_1->get_model()->get_pos() + gold_vector3(0.f, 0.f, 0.01f));
 	cube->update(camera.handle());
+
+	player->update(camera.handle());
 
 	plane->update(camera.handle());
 

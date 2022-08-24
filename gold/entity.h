@@ -7,8 +7,7 @@ class gold_camera;
 class gold_entity
 {
 	gold_unique_ptr<gold_model> model;
-	gold_vector3 position;
-	gold_vector3 rotation;
+	gold_vector3 velocity;
 
   public:
 	gold_entity(gold_unique_ptr<gold_model> &&model);
@@ -23,10 +22,16 @@ class gold_entity
 	void set_rotation(const gold_vector3 &rotation);
 	const gold_vector3 &get_rotation() const;
 
+	void add_velocity(const gold_vector3 &velocity);
+	void reset_velocity();
+	const gold_vector3 &get_velocity() const;
+
 	gold_vector3 get_up() const;
 	gold_vector3 get_forward() const;
 	gold_vector3 get_left() const;
 
 	void move(const gold_vector3 &offset);
 	void move_relative(const gold_vector3 &offset);
+
+	bool is_colliding_with(const gold_entity &entity) const;
 };

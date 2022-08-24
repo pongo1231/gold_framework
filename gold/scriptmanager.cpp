@@ -24,15 +24,15 @@ static int lua_print(lua_State *lua)
 	return 0;
 }
 
-static int lua_get_object_position(lua_State *lua)
+static int lua_get_entity_position(lua_State *lua)
 {
 	auto name   = luaL_checklstring(lua, 1, NULL);
 
-	auto object = gold_factory.get_object(name);
-	if (!object)
+	auto entity = gold_factory.get_entity(name);
+	if (!entity)
 		return 0;
 
-	const auto &pos = object->get_position();
+	const auto &pos = entity->get_position();
 	lua_pushnumber(lua, pos.x);
 	lua_pushnumber(lua, pos.y);
 	lua_pushnumber(lua, pos.z);
@@ -40,29 +40,29 @@ static int lua_get_object_position(lua_State *lua)
 	return 3;
 }
 
-static int lua_set_object_position(lua_State *lua)
+static int lua_set_entity_position(lua_State *lua)
 {
 	auto name   = luaL_checklstring(lua, 1, NULL);
 	float x     = luaL_checknumber(lua, 2);
 	float y     = luaL_checknumber(lua, 3);
 	float z     = luaL_checknumber(lua, 4);
 
-	auto object = gold_factory.get_object(name);
-	if (object)
-		object->set_position({ x, y, z });
+	auto entity = gold_factory.get_entity(name);
+	if (entity)
+		entity->set_position({ x, y, z });
 
 	return 0;
 }
 
-static int lua_get_object_rotation(lua_State *lua)
+static int lua_get_entity_rotation(lua_State *lua)
 {
 	auto name   = luaL_checklstring(lua, 1, NULL);
 
-	auto object = gold_factory.get_object(name);
-	if (!object)
+	auto entity = gold_factory.get_entity(name);
+	if (!entity)
 		return 0;
 
-	const auto &pos = object->get_rotation();
+	const auto &pos = entity->get_rotation();
 	lua_pushnumber(lua, pos.x);
 	lua_pushnumber(lua, pos.y);
 	lua_pushnumber(lua, pos.z);
@@ -70,16 +70,16 @@ static int lua_get_object_rotation(lua_State *lua)
 	return 3;
 }
 
-static int lua_set_object_rotation(lua_State *lua)
+static int lua_set_entity_rotation(lua_State *lua)
 {
 	auto name   = luaL_checklstring(lua, 1, NULL);
 	float x     = luaL_checknumber(lua, 2);
 	float y     = luaL_checknumber(lua, 3);
 	float z     = luaL_checknumber(lua, 4);
 
-	auto object = gold_factory.get_object(name);
-	if (object)
-		object->set_rotation({ x, y, z });
+	auto entity = gold_factory.get_entity(name);
+	if (entity)
+		entity->set_rotation({ x, y, z });
 
 	return 0;
 }
@@ -107,17 +107,17 @@ static void register_functions(lua_State *lua, std::string_view filename)
 	lua_pushcfunction(lua, lua_print);
 	lua_setglobal(lua, "print");
 
-	lua_pushcfunction(lua, lua_get_object_position);
-	lua_setglobal(lua, "get_object_position");
+	lua_pushcfunction(lua, lua_get_entity_position);
+	lua_setglobal(lua, "get_entity_position");
 
-	lua_pushcfunction(lua, lua_set_object_position);
-	lua_setglobal(lua, "set_object_position");
+	lua_pushcfunction(lua, lua_set_entity_position);
+	lua_setglobal(lua, "set_entity_position");
 
-	lua_pushcfunction(lua, lua_get_object_rotation);
-	lua_setglobal(lua, "get_object_rotation");
+	lua_pushcfunction(lua, lua_get_entity_rotation);
+	lua_setglobal(lua, "get_entity_rotation");
 
-	lua_pushcfunction(lua, lua_set_object_rotation);
-	lua_setglobal(lua, "set_object_rotation");
+	lua_pushcfunction(lua, lua_set_entity_rotation);
+	lua_setglobal(lua, "set_entity_rotation");
 
 	lua_pushcfunction(lua, lua_key_pressed);
 	lua_setglobal(lua, "is_key_pressed");

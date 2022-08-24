@@ -6,7 +6,7 @@ local speed = 6.0
 
 -- Funktion wird jeden Frame aufgerufen
 function on_tick(delta_time)
-    local x, y, z = get_object_position("cube")
+    local x, y, z = get_entity_position("cube")
     if x > 9.0 then -- Rechte Seite, nach unten bewegen
         x = 9.0
         direction = "down"
@@ -33,5 +33,5 @@ function on_tick(delta_time)
     end
 
     -- Neue Position
-    set_object_position("cube", x, y, z)
+    set_entity_position("cube", x, y, z)
 end

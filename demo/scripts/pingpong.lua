@@ -8,7 +8,7 @@ local speed = 6.0
 
 -- Funktion wird jeden Frame aufgerufen
 function on_tick(delta_time)
-    local x, y, z = get_object_position("cube")
+    local x, y, z = get_entity_position("cube")
     if x > 9.0 then -- Rechte Seite, nach links bewegen
         horizontal_direction = "left"
     elseif x < -9.0 then -- Linke Seite, nach rechts bewegen
@@ -32,5 +32,5 @@ function on_tick(delta_time)
     end
 
     -- Neue Position setzen
-    set_object_position("cube", x, y, z)
+    set_entity_position("cube", x, y, z)
 end

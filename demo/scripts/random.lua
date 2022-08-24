@@ -9,7 +9,7 @@ local accumulated_deltatime = 0.0
 
 -- Funktion wird jeden Frame aufgerufen
 function on_tick(delta_time)
-    local x, y, z = get_object_position("cube")
+    local x, y, z = get_entity_position("cube")
 
     -- Richtung ändern alle 0.5 Sekunden
     accumulated_deltatime = accumulated_deltatime + delta_time
@@ -42,5 +42,5 @@ function on_tick(delta_time)
     end
 
     -- Neue Position setzen
-    set_object_position("cube", x, y, z)
+    set_entity_position("cube", x, y, z)
 end

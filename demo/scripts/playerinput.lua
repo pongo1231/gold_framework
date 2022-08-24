@@ -3,7 +3,7 @@ local speed = 6.0
 
 -- Funktion wird jeden Frame aufgerufen
 function on_tick(delta_time)
-    local x, y, z = get_object_position("cube")
+    local x, y, z = get_entity_position("cube")
 
     if is_key_pressed(0x57) then -- W
         z = z + speed * delta_time
@@ -29,5 +29,5 @@ function on_tick(delta_time)
     end
 
     -- Neue Position setzen
-    set_object_position("cube", x, y, z)
+    set_entity_position("cube", x, y, z)
 end

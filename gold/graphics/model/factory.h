@@ -29,7 +29,7 @@ class gold_factory
 
   public:
 	template <gold_model_type model_type>
-	gold_weak_ptr<gold_entity> create_entity(const gold_string &name, std::string_view filename = {})
+	gold_entity *create_entity(const gold_string &name, std::string_view filename = {})
 	{
 		if (entity_pool.contains(name))
 		{
@@ -59,15 +59,15 @@ class gold_factory
 		if (!entity_pool.contains(name))
 			gold_assert("gold_weak_ptr::create_entity entity_pool does not contain new entry?");
 
-		return entity_pool.at(name).get_weak_ptr();
+		return entity_pool.at(name).handle();
 	}
 
-	template <class model = gold_model> model *get_object(const gold_string &name) const
+	gold_entity* get_entity(const gold_string &name) const
 	{
-		return entity_pool.contains(name) ? reinterpret_cast<model *>(entity_pool.at(name).handle()) : nullptr;
+		return entity_pool.contains(name) ? entity_pool.at(name).handle() : nullptr;
 	}
 
-	const auto &get_objects() const
+	const auto &get_all_entities() const
 	{
 		return entity_pool;
 	}

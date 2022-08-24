@@ -82,6 +82,16 @@ void gold_mesh::set_triangle_strip(bool state)
 	is_triangle_strip = state;
 }
 
+const gold_vector<gold_vertex> &gold_mesh::get_vertices() const
+{
+	return vertices;
+}
+
+const gold_vector<std::uint32_t> &gold_mesh::get_indices() const
+{
+	return indices;
+}
+
 gold_unique_ptr<gold_mesh> gold_mesh::load_from_obj(std::string_view filename)
 {
 	if (!gold_file::does_file_exist(filename))

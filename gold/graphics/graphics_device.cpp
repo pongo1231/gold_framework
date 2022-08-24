@@ -122,14 +122,19 @@ error_code gold_graphicsdevice::begin_render()
 	gold_delta_time      = (time - gold_last_frame_time) / 1000.f;
 	gold_last_frame_time = time;
 
-	ShowCursor(false);
-	RECT wnd_rect;
-	GetWindowRect(wnd, &wnd_rect);
-	POINT cursor_pos;
-	GetCursorPos(&cursor_pos);
-	SetCursorPos(wnd_rect.left + 800, wnd_rect.top + 450);
-	last_cursor_distance = { static_cast<float>(cursor_pos.x - (wnd_rect.left + 800)),
-		                     static_cast<float>(cursor_pos.y - (wnd_rect.top + 450)), 0.f };
+	last_cursor_distance = {};
+
+	if (GetActiveWindow() == wnd)
+	{
+		ShowCursor(false);
+		RECT wnd_rect;
+		GetWindowRect(wnd, &wnd_rect);
+		POINT cursor_pos;
+		GetCursorPos(&cursor_pos);
+		SetCursorPos(wnd_rect.left + 800, wnd_rect.top + 450);
+		last_cursor_distance = { static_cast<float>(cursor_pos.x - (wnd_rect.left + 800)),
+			                     static_cast<float>(cursor_pos.y - (wnd_rect.top + 450)), 0.f };
+	}
 
 	glClearColor(.3f, .3f, .3f, 1.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

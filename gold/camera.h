@@ -17,7 +17,7 @@ class gold_camera
 	gold_vector3 up { 0.f, 1.f, 0.f };
 	float fov_horizontal = 0.f, fov_vertical = 0.f;
 
-	gold_weak_ptr<gold_entity> entity_attached_to;
+	gold_entity* parent = nullptr;
 
   public:
 	gold_camera(gold_graphicsdevice *graphics_device);
@@ -45,8 +45,10 @@ class gold_camera
 	glm::highp_mat4 get_perspective() const;
 	glm::highp_mat4 get_view() const;
 
-	void attach_to_entity(gold_weak_ptr<gold_entity> entity);
-	void detach_from_entity();
-	bool is_attached_to_entity() const;
-	gold_weak_ptr<gold_entity> get_entity_attached_to() const;
+	void attach_to_entity(gold_entity* entity);
+	void detach_from_parent();
+	bool has_parent() const;
+	gold_entity* get_parent() const;
+
+	void move_parent_relatively(const gold_vector3 &move, bool ignore_up = false);
 };
