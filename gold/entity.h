@@ -20,4 +20,11 @@ class gold_entity
 
 	void set_rotation(const gold_vector3 &rotation);
 	const gold_vector3 &get_rotation() const;
+
+	gold_vector3 get_up() const;
+	gold_vector3 get_forward() const;
+	gold_vector3 get_left() const;
+
+	void move(const gold_vector3 &offset);
+	void move_relative(const gold_vector3 &offset);
 };

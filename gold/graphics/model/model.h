@@ -41,6 +41,8 @@ class gold_model
 	const gold_vector3 &get_scale() const;
 	void set_scale(const gold_vector3 &scale);
 
+	glm::mat4 get_model_matrix() const;
+
 	void set_specular_multiplier(float specular_multiplier);
 	void set_shininess(float shininess);
 

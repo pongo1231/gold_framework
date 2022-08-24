@@ -39,13 +39,7 @@ void gold_model::render(const gold_camera *camera)
 		                   glm::value_ptr(camera->get_view()));
 	}
 
-	auto matrix = glm::mat4(1.f);
-	matrix      = glm::scale(matrix, { m_scale.x, m_scale.y, m_scale.z });
-	matrix      = glm::rotate(matrix, 6.28319f,
-	                          { rotation.x == 0.f ? 1.f : std::fmod(rotation.x / 360.f, 1.f),
-                           rotation.y == 0.f ? 1.f : std::fmod(rotation.y / 360.f, 1.f),
-                           rotation.z == 0.f ? 1.f : std::fmod(rotation.z / 360.f, 1.f) });
-	     matrix = glm::translate(matrix, { position.x, position.y, position.z });
+	auto matrix = get_model_matrix();
 	glUniformMatrix4fv(shader_program->get_model_uniform_location(), 1, GL_FALSE, glm::value_ptr(matrix));
 
 	if (texture)
@@ -99,6 +93,19 @@ const gold_vector3 &gold_model::get_scale() const
 void gold_model::set_scale(const gold_vector3 &_scale)
 {
 	m_scale = _scale;
+}
+
+glm::mat4 gold_model::get_model_matrix() const
+{
+	glm::mat4 matrix(1.f);
+	matrix = glm::scale(matrix, { m_scale.x, m_scale.y, m_scale.z });
+	matrix = glm::rotate(matrix, 6.28319f,
+	                     { rotation.x == 0.f ? 1.f : std::fmod(rotation.x / 360.f, 1.f),
+	                       rotation.y == 0.f ? 1.f : std::fmod(rotation.y / 360.f, 1.f),
+	                       rotation.z == 0.f ? 1.f : std::fmod(rotation.z / 360.f, 1.f) });
+	matrix = glm::translate(matrix, { position.x, position.y, position.z });
+
+	return matrix;
 }
 
 void gold_model::set_specular_multiplier(float specular_multiplier)

@@ -32,3 +32,38 @@ const gold_vector3 &gold_entity::get_rotation() const
 {
 	return rotation;
 }
+
+gold_vector3 gold_entity::get_up() const
+{
+	const auto &matrix   = model->get_model_matrix();
+	const auto &inverted = glm::inverse(matrix);
+	return { inverted[1][0], inverted[1][1], inverted[1][2] };
+}
+
+gold_vector3 gold_entity::get_forward() const
+{
+	const auto &matrix   = model->get_model_matrix();
+	const auto &inverted = glm::inverse(matrix);
+	return { inverted[2][0], inverted[2][1], inverted[2][2] };
+}
+
+gold_vector3 gold_entity::get_left() const
+{
+	const auto &matrix   = model->get_model_matrix();
+	const auto &inverted = glm::inverse(matrix);
+	return { inverted[0][0], inverted[0][1], inverted[0][2] };
+}
+
+void gold_entity::move(const gold_vector3 &offset)
+{
+	position += offset;
+}
+
+void gold_entity::move_relative(const gold_vector3 &offset)
+{
+	const auto &forward = get_forward();
+	const auto &up      = get_up();
+	const auto &left    = get_left();
+
+	position += (forward * offset.x) + (up * offset.y) + (left * offset.z);
+}

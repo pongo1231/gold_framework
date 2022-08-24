@@ -24,8 +24,6 @@ error_code gold_game::init(HINSTANCE inst)
 
 	camera          = gold_unique_ptr<gold_camera>::create(graphics_device.handle());
 	camera->set_eye({ 0.f, 10.f, -20.f });
-	camera->set_look_at({ 0.f, 0.f, 0.f });
-	camera->set_up({ 0.f, 1.f, 0.f });
 	camera->set_fov(45.f, 1280.f / 720.f);
 
 	error_code error_code = error_code::success;
@@ -38,14 +36,14 @@ error_code gold_game::init(HINSTANCE inst)
 	plane   = gold_factory.create_model<gold_model_type::cube, gold_cube>("plane");
 	plane->set_position({ 0.f, -2.f, 0.f });
 	plane->set_scale({ 10.f, 1.f, 10.f });
-	plane->set_specular_multiplier(0.f);
-	plane->set_shininess(0.f);
+	// plane->set_specular_multiplier(0.f);
+	// plane->set_shininess(0.f);
 	plane->set_texture(texture);
 
 	cube = gold_factory.create_model<gold_model_type::cube, gold_cube>("cube");
 	cube->set_position({ 0.f, 0.f, -3.f });
-	cube->set_specular_multiplier(1.f);
-	cube->set_shininess(10.f);
+	// cube->set_specular_multiplier(1.f);
+	// cube->set_shininess(10.f);
 	cube->set_texture(texture);
 
 	skybox = gold_unique_ptr<gold_skybox>(gold_skybox::create());
@@ -151,7 +149,7 @@ error_code gold_game::run()
 
 	// model->set_position({ -5.f, -100.f, 100.f });
 	auto &model_rot = model->get_rotation();
-	model->set_rotation({ model_rot.x, model_rot.y + 1.f, model_rot.z });
+	model->set_rotation({ model_rot.x, model_rot.y, model_rot.z + 0.1f });
 	model->render(camera.handle());
 
 	model2->render(camera.handle());
