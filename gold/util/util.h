@@ -13,8 +13,8 @@ namespace gold_util
 		gold_vector3 side;
 		gold_vector3 _up;
 
-		forward          = (at - eye).norm();
-		side             = forward.cross(up).norm();
+		forward          = (at - eye).normalize();
+		side             = forward.cross(up).normalize();
 		_up              = side.cross(forward);
 
 		gold_matrix4 mtx = { side.x, _up.x, -forward.x, 0.f, side.y, _up.y, -forward.y, 0.f,

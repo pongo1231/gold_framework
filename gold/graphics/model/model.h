@@ -15,13 +15,12 @@ class gold_model
   private:
 	gold_unique_ptr<gold_mesh> mesh;
 	gold_unique_ptr<gold_shader_program> shader_program;
-	gold_vector3 position = {};
-	float angle           = 0.f;
-	gold_vector3 rotation { 1.f, 1.f, 1.f };
+	gold_vector3 position;
+	gold_vector3 rotation;
 	gold_vector3 m_scale { 1.f, 1.f, 1.f };
 	gold_ref_ptr<gold_texture> texture;
-	float specular_multiplier = .5f;
-	float shininess           = 64.f;
+	float specular_multiplier = 8.f;
+	float shininess           = 8.f;
 
   public:
 	gold_model() = default;
@@ -33,12 +32,11 @@ class gold_model
 
 	void set_texture(gold_ref_ptr<gold_texture> texture);
 
-	const gold_vector3 &get_pos() const;
+	const gold_vector3 &get_position() const;
 	void set_position(const gold_vector3 &pos);
 
 	const gold_vector3 &get_rotation() const;
-	float get_angle() const;
-	void set_rotation(float angle, const gold_vector3 &rot, bool in_radians = false);
+	void set_rotation(const gold_vector3 &rotation);
 
 	const gold_vector3 &get_scale() const;
 	void set_scale(const gold_vector3 &scale);

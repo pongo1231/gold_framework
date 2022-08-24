@@ -73,21 +73,21 @@ error_code gold_game::run()
 	const auto &camera_pos     = camera->get_eye();
 	const auto &camera_look_at = camera->get_look_at();
 
-	gold_vector3 cam_forward;
-	cam_forward.x = camera_pos.x - camera_look_at.x;
-	cam_forward.y = camera_pos.y - camera_look_at.y;
-	cam_forward.z = camera_pos.z - camera_look_at.z;
-	cam_forward   = cam_forward.norm();
+	const auto &forward        = camera->get_forward();
+	const auto &left           = camera->get_left();
+
+	camera->set_eye({ std::max(-200.f, std::min(camera_pos.x, 200.f)), std::max(-200.f, std::min(camera_pos.y, 200.f)),
+	                  std::max(-200.f, std::min(camera_pos.z, 200.f)) });
 
 	if (gold_input.is_key_pressed(0x57)) // W
-		camera->move({ cam_forward.x * 0.f, cam_forward.y * 0.f, cam_forward.z * .1f });
+		camera->move({ forward.x * -.1f, forward.y * -.1f, forward.z * -.1f });
 	else if (gold_input.is_key_pressed(0x53)) // S
-		camera->move({ 0.f, 0.f, -.1f });
+		camera->move({ forward.x * .1f, forward.y * .1f, forward.z * .1f });
 
 	if (gold_input.is_key_pressed(0x41)) // A
-		camera->move({ .1f, 0.f, 0.f });
+		camera->move({ left.x * -.1f, left.y * -.1f, left.z * -.1f });
 	else if (gold_input.is_key_pressed(0x44)) // D
-		camera->move({ -.1f, 0.f, 0.f });
+		camera->move({ left.x * .1f, left.y * .1f, left.z * .1f });
 
 	if (gold_input.is_key_pressed(VK_CONTROL))
 	{
@@ -120,28 +120,16 @@ error_code gold_game::run()
 
 	const auto &cursor_dist = graphics_device->get_last_cursor_distance();
 
-	static gold_vector3 rot = { 0.f, 0.f, 0.f };
-	rot.x += cursor_dist.x;
-	rot.y += cursor_dist.y;
-	if (rot.y > 180.f)
-		rot.y = 180.f;
-	else if (rot.y < -180.f)
-		rot.y = -180.f;
-
-	static float yaw   = 0.f;
-	static float pitch = 0.f;
+	static float yaw        = 0.f;
+	static float pitch      = 0.f;
 	yaw += cursor_dist.x * 0.05f;
-	pitch -= cursor_dist.y * 0.05f;
-	if (pitch > 89.f)
-		pitch = 89.f;
-	if (pitch < -89.f)
-		pitch = -89.f;
+	pitch = std::max(-89.f, std::min(pitch - cursor_dist.y * 0.05f, 89.f));
 
 	gold_vector3 new_rot;
 	new_rot.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
 	new_rot.y = sin(glm::radians(pitch));
 	new_rot.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-	new_rot   = new_rot.norm();
+	// new_rot   = new_rot.norm();
 
 	camera->set_look_at({ camera_pos.x + new_rot.x, camera_pos.y + new_rot.y, camera_pos.z + new_rot.z });
 
@@ -161,6 +149,8 @@ error_code gold_game::run()
 	plane->render(camera.handle());
 
 	// model->set_position({ -5.f, -100.f, 100.f });
+	auto &model_rot = model->get_rotation();
+	model->set_rotation({ model_rot.x, model_rot.y + 1.f, model_rot.z });
 	model->render(camera.handle());
 
 	model2->render(camera.handle());

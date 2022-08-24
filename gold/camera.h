@@ -28,6 +28,8 @@ class gold_camera
 
 	void set_up(const gold_vector3 &up);
 	const gold_vector3 &get_up() const;
+	gold_vector3 get_forward() const;
+	gold_vector3 get_left() const;
 
 	void set_fov(float fov_horizontal, float fov_vertical);
 	float get_fov_horizontal() const;

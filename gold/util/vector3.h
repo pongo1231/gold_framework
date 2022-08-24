@@ -72,7 +72,7 @@ class gold_vector3
 		z *= vec.z;
 	}
 
-	gold_vector3 norm() const
+	gold_vector3 normalize() const
 	{
 		gold_vector3 vec;
 

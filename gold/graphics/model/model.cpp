@@ -17,7 +17,7 @@ gold_model::gold_model(gold_unique_ptr<gold_mesh> &&mesh, gold_unique_ptr<gold_s
 	this->shader_program->bind();
 	this->shader_program->set_uniform_vector3("uni_light_pos", { 0.f, 0.f, 0.f });
 	this->shader_program->set_uniform_vector3("uni_light_col", { .0f, .5f, .5f });
-	this->shader_program->set_uniform_float("uni_ambient_modifier", .9f);
+	this->shader_program->set_uniform_float("uni_ambient_modifier", .5f);
 	this->shader_program->set_uniform_float("uni_spec_modifier", specular_multiplier);
 	this->shader_program->set_uniform_float("uni_shininess", shininess);
 	this->shader_program->unbind();
@@ -25,6 +25,9 @@ gold_model::gold_model(gold_unique_ptr<gold_mesh> &&mesh, gold_unique_ptr<gold_s
 
 void gold_model::render(const gold_camera *camera)
 {
+	if (!camera)
+		gold_assert("gold_model::render camera == null!");
+
 	if (shader_program)
 	{
 		shader_program->bind();
@@ -38,8 +41,11 @@ void gold_model::render(const gold_camera *camera)
 
 	auto matrix = glm::mat4(1.f);
 	matrix      = glm::scale(matrix, { m_scale.x, m_scale.y, m_scale.z });
-	matrix      = glm::rotate(matrix, angle, { rotation.x, rotation.y, rotation.z });
-	matrix      = glm::translate(matrix, { position.x, position.y, position.z });
+	matrix      = glm::rotate(matrix, 6.28319f,
+	                          { rotation.x == 0.f ? 1.f : std::fmod(rotation.x / 360.f, 1.f),
+                           rotation.y == 0.f ? 1.f : std::fmod(rotation.y / 360.f, 1.f),
+                           rotation.z == 0.f ? 1.f : std::fmod(rotation.z / 360.f, 1.f) });
+	     matrix = glm::translate(matrix, { position.x, position.y, position.z });
 	glUniformMatrix4fv(shader_program->get_model_uniform_location(), 1, GL_FALSE, glm::value_ptr(matrix));
 
 	if (texture)
@@ -65,7 +71,7 @@ void gold_model::set_texture(gold_ref_ptr<gold_texture> texture)
 	this->texture = texture;
 }
 
-const gold_vector3 &gold_model::get_pos() const
+const gold_vector3 &gold_model::get_position() const
 {
 	return position;
 }
@@ -80,15 +86,9 @@ const gold_vector3 &gold_model::get_rotation() const
 	return rotation;
 }
 
-float gold_model::get_angle() const
+void gold_model::set_rotation(const gold_vector3 &rotation)
 {
-	return angle;
-}
-
-void gold_model::set_rotation(float angle, const gold_vector3 &rot, bool in_radians)
-{
-	angle    = in_radians ? angle : glm::radians(angle);
-	rotation = rot;
+	this->rotation = rotation;
 }
 
 const gold_vector3 &gold_model::get_scale() const
@@ -131,7 +131,7 @@ gold_unique_ptr<gold_model> gold_model::load_from_obj(std::string_view filename)
 	auto shader_program = gold_unique_ptr<gold_shader_program>::create(std::move(vert_shader), std::move(frag_shader));
 
 	shader_program->bind();
-	shader_program->set_uniform_vector3("uni_light_pos", { 0.f, 0.f, 0.f });
+	shader_program->set_uniform_vector3("uni_light_pos", { 0.f, 10.f, 10.f });
 	shader_program->set_uniform_vector3("uni_light_col", { 1.f, 1.f, 1.f });
 	shader_program->set_uniform_float("uni_ambient_modifier", .9f);
 	shader_program->set_uniform_float("uni_spec_modifier", 0.f);
