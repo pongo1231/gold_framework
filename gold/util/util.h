@@ -5,8 +5,17 @@
 
 #include <string_view>
 
+/*
+* Misc utils
+*/
 namespace gold_util
 {
+	/*
+	 * <param name="eye">Position of view</param>
+	 * <param name="at">Target position</param>
+	 * <param name="up">Up vector</param>
+	 * <returns>View matrix</returns>
+	 */
 	inline gold_matrix4 look_at(const gold_vector3 &eye, const gold_vector3 &at, const gold_vector3 &up)
 	{
 		gold_vector3 forward;
@@ -64,8 +73,15 @@ namespace gold_util
 		return mtx;*/
 	}
 
+	/*
+	 * <param name="fov_y">Vertical Field Of View</param>
+	 * <param name="aspect">Aspect ratio</param>
+	 * <param name="n_plane">Near plane</param>
+	 * <param name="f_plane">Far plane</param>
+	 * <returns>Projection matrix</returns>
+	 */
 	// Taken from https://openglbook.com/chapter-4-entering-the-third-dimension.html
-	inline gold_matrix4 create_proj_matrix(float fov_y, float aspect, float n_plane, float f_plane)
+	inline gold_matrix4 create_projection_matrix(float fov_y, float aspect, float n_plane, float f_plane)
 	{
 		auto cotf = [](float _f)
 		{

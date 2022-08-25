@@ -10,6 +10,9 @@
 
 #include <GL/glew.h>
 
+/*
+* Vertices used for the cube (position, texture uv, color, normals)
+*/
 static const gold_vector<gold_vertex> cube_vertices = {
 	{ -1.f, 1.f, -1.f, 0.f, 1.f, 1.f, 1.f, 1.f, 1.f, 0.f, 1.f, 0.f },
 	{ 1.f, 1.f, -1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 0.f, 1.f, 0.f },
@@ -42,6 +45,9 @@ static const gold_vector<gold_vertex> cube_vertices = {
 	{ 1.f, -1.f, -1.f, 0.f, 1.f, 1.f, 1.f, 1.f, 1.f, 0.f, 0.f, -1.f },
 };
 
+/*
+* Indices used for cube
+*/
 static const gold_vector<std::uint32_t> cube_indices = { 8,  9,  10, 9,  11, 10,
 
 	                                                     14, 13, 12, 14, 15, 13,
@@ -59,21 +65,15 @@ gold_cube::gold_cube(gold_unique_ptr<gold_mesh> &&mesh, gold_unique_ptr<gold_sha
 {
 }
 
+
 gold_unique_ptr<gold_cube> gold_cube::create()
 {
 	auto cube_mesh = gold_unique_ptr<gold_mesh>::create(cube_vertices, cube_indices);
 	cube_mesh->set_triangle_strip(true);
 	auto cube_vert_shader = gold_shader::load_from_file("shaders/cube_vert.glsl", GL_VERTEX_SHADER);
-	gold_unique_ptr<gold_shader> cube_frag_shader;
-	// if (is_plane)
-	//	cube_frag_shader = gold_shader::load_from_file("shaders/plane_frag.glsl", GL_FRAGMENT_SHADER);
-	// else
-	cube_frag_shader = gold_shader::load_from_file("shaders/cube_frag.glsl", GL_FRAGMENT_SHADER);
+	gold_unique_ptr<gold_shader> cube_frag_shader = gold_shader::load_from_file("shaders/cube_frag.glsl", GL_FRAGMENT_SHADER);
 	auto cube_shader_program =
 	    gold_unique_ptr<gold_shader_program>::create(std::move(cube_vert_shader), std::move(cube_frag_shader));
-
-	// mod->set_tex(new gol_tex("imgs/tex.png"));
-	// model->set_pos(pos);
 
 	auto alloc = reinterpret_cast<gold_cube *>(gold_global_allocate(sizeof(gold_cube)));
 	new (alloc) gold_cube(std::move(cube_mesh), std::move(cube_shader_program));

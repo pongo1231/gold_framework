@@ -4,8 +4,8 @@
 #include <fstream>
 #include <sstream>
 
-//static gold_vector<gold_string> demo_scripts = { "scripts/pingpong.lua", "scripts/circle.lua", "scripts/random.lua",
-//	                                             "scripts/playerinput.lua" };
+static gold_vector<gold_string> demo_scripts = { "scripts\\pingpong.lua", "scripts\\circle.lua", "scripts\\random.lua",
+	                                             "scripts\\playerinput.lua" };
 static size_t demo_current_script_index      = 0;
 
 gold_ref_ptr<gold_texture> texture;
@@ -29,7 +29,7 @@ void gold_game::init(HINSTANCE inst)
 
 	start_platform   = gold_factory.create_entity<gold_model_type::cube>("start_platform");
 	start_platform->set_position({ 0.f, -2.f, 0.f });
-	start_platform->get_model()->set_scale({ 5.f, 1.f, 5.f });
+	start_platform->get_model()->set_scale({ 10.f, 1.f, 10.f });
 	start_platform->get_model()->set_texture(texture);
 	start_platform->has_gravity = false;
 
@@ -65,7 +65,7 @@ void gold_game::init(HINSTANCE inst)
 	script_manager.register_scripts("scripts");
 
 	model = gold_model::load_from_obj("models/building.obj");
-	model->set_position({ 30.f, 0.f, 0.f });
+	model->set_position({ 60.f, 0.f, 30.f });
 	model->set_texture(texture);
 	model->set_scale({ 2.f, 2.f, 2.f });
 
@@ -81,6 +81,7 @@ bool gold_game::run()
 	gold_input.run();
 
 	script_manager.execute_script(script_manager.get_all_scripts()[demo_current_script_index].script_name);
+	script_manager.execute_script("scripts\\platforms.lua");
 
 	const auto &camera_pos     = camera->get_eye();
 	const auto &camera_look_at = camera->get_look_at();
@@ -88,13 +89,13 @@ bool gold_game::run()
 	static enum class camera_state
 	{
 		first_person,
-		top_down
+		second_person
 	} camera_state = camera_state::first_person;
 	if (gold_input.is_key_just_pressed(VK_SHIFT))
 	{
 		if (camera_state == camera_state::first_person)
 		{
-			camera_state = camera_state::top_down;
+			camera_state = camera_state::second_person;
 			camera->rotatable = false;
 			camera->detach_from_parent();
 		}
@@ -108,15 +109,15 @@ bool gold_game::run()
 		}
 	}
 
-	if (camera_state == camera_state::top_down)
+	if (camera_state == camera_state::second_person)
 	{
 		const auto &player_pos = player->get_position();
-		camera->set_eye({ player_pos.x, player_pos.y + 5.f, player_pos.z });
+		camera->set_eye({ 0.f, 10.f, 0.f });
 		camera->set_look_at({ player_pos.x, player_pos.y, player_pos.z });
 	}
 
-	gold_global_light_color = { .5f + std::sinf(GetTickCount64() * .0005f) * .5f, .5f + std::sinf(GetTickCount64() * .001f) * .5f,
-		                        .5f + std::sinf(GetTickCount64() * .002f) * .5f };
+	gold_global_light_color = { .5f + std::sinf(GetTickCount64() * .00005f) * .5f, .5f + std::sinf(GetTickCount64() * .0001f) * .5f,
+		                        .5f + std::sinf(GetTickCount64() * .0002f) * .5f };
 
 	gold_vector3 move;
 
@@ -167,7 +168,7 @@ bool gold_game::run()
 	glUseProgram(0);
 
 	std::ostringstream oss;
-	oss << "STRG + G - Skript wechseln / STRG + R - Skripte neu laden | Momentaner Skript: "
+	oss << "STRG + G - Switch to next cube logic script / STRG + R - Reload cube logic scripts | Currently running cube logic script: "
 	    << script_manager.get_all_scripts()[demo_current_script_index].script_name.c_string();
 
 	auto str  = oss.str();

@@ -2,13 +2,25 @@
 
 #include <cstdint>
 
+/*
+* Gold vector3
+*/
 class gold_vector3
 {
   public:
 	float x = 0.f, y = 0.f, z = 0.f;
 
+	/*
+	* Default constructor, values are zero initialized
+	*/
 	gold_vector3() = default;
 
+	/*
+	* Constructor
+	* <param name="x">X Value</param>
+	* <param name="y">Y Value</param>
+	* <param name="z">Z Value</param>
+	*/
 	gold_vector3(float x, float y, float z) : x(x), y(y), z(z)
 	{
 	}
@@ -126,6 +138,9 @@ class gold_vector3
 		z *= value;
 	}
 
+	/*
+	 * <returns>Normalized vector3</returns>
+	 */
 	gold_vector3 normalize() const
 	{
 		gold_vector3 vec;
@@ -138,6 +153,10 @@ class gold_vector3
 		return vec;
 	}
 
+	/*
+	 * <param name="vector">Other vector</param>
+	 * <returns>Cross vector</returns>
+	 */
 	gold_vector3 cross(const gold_vector3 &vector) const
 	{
 		gold_vector3 new_vector;
@@ -149,6 +168,10 @@ class gold_vector3
 		return new_vector;
 	}
 
+	/*
+	 * <param name="vector">Other vector</param>
+	 * <returns>Dot product</returns>
+	 */
 	float dot(const gold_vector3 &vector) const
 	{
 		return x * vector.x + y * vector.y + z * vector.z;

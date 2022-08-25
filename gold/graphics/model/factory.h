@@ -13,8 +13,15 @@
 #include <string_view>
 #include <unordered_map>
 
+/*
+* Entity constructor
+*/
 class gold_factory
 {
+	/*
+	* Hash function used for map
+	* <param name="key">Key to use for hashing</param>
+	*/
 	static inline auto objects_pool_hash = [](const gold_string &key)
 	{
 		size_t hash = 0;
@@ -25,9 +32,20 @@ class gold_factory
 		return hash;
 	};
 
+	/*
+	* Pool holding entities
+	* unordered_map for fast lookups using hashes
+	*/
 	std::unordered_map<gold_string, gold_unique_ptr<gold_entity>, decltype(objects_pool_hash)> entity_pool;
 
   public:
+	/*
+	* Constructs an entity
+	* <param name="model_type">Type of entity to construct (obj_model, cube or skybox)</param>
+	* <param name="name">Name to use as reference for entity</param>
+	* <param name="filename">(for obj_model) Path to .obj file to use as model</param>
+	* <returns>Raw pointer to created entity in pool, or nullptr if the name already exists</returns>
+	*/
 	template <gold_model_type model_type>
 	gold_entity *create_entity(const gold_string &name, std::string_view filename = {})
 	{
@@ -64,11 +82,19 @@ class gold_factory
 		return entity_pool.at(name).handle();
 	}
 
+	/*
+	* Gets an entity inside pool using name
+	* <param name="name">Reference name of entity</param>
+	* <returns>Raw pointer to found entity in pool, or nullptr if invalid</returns>
+	*/
 	gold_entity* get_entity(const gold_string &name) const
 	{
 		return entity_pool.contains(name) ? entity_pool.at(name).handle() : nullptr;
 	}
 
+	/*
+	 * <returns>All existing entities inside pool</returns>
+	 */
 	const auto &get_all_entities() const
 	{
 		return entity_pool;

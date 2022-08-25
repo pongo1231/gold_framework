@@ -6,25 +6,42 @@
 #include <limits>
 #include <string_view>
 
+/*
+* Gold string class
+*/
 template <void *(*allocator)(size_t), void (*deallocator)(void *)> class gold_base_string
 {
 	char *buffer         = nullptr;
 	size_t buffer_length = 0;
 
   public:
+	/*
+	* Placeholder value for invalid values
+	*/
 	const static inline size_t npos = std::numeric_limits<size_t>::max();
 
+	/*
+	* Default constructor with empty string
+	*/
 	gold_base_string()
 	{
 		clear();
 	}
 
+	/*
+	* Copy constructor
+	* <param name="str">Other string</param>
+	*/
 	gold_base_string(const gold_base_string &str)
 	{
 		resize(str.buffer_length);
 		memcpy(buffer, str.buffer, str.buffer_length);
 	}
 
+	/*
+	 * Copy operator
+	 * <param name="str">Other string</param>
+	 */
 	gold_base_string &operator=(const gold_base_string &str)
 	{
 		clear();
@@ -34,10 +51,18 @@ template <void *(*allocator)(size_t), void (*deallocator)(void *)> class gold_ba
 		return *this;
 	}
 
-	gold_base_string(const gold_base_string &&str) : buffer(str.buffer), buffer_length(str.buffer_length)
+	/*
+	 * Move constructor
+	 * <param name="str">Other string</param>
+	 */
+	gold_base_string(const gold_base_string &&str) : buffer(str.buffer), buffer_length(str.buffer_length) noexcept
 	{
 	}
 
+	/*
+	 * Move operator
+	 * <param name="str">Other string</param>
+	 */
 	gold_base_string &operator=(const gold_base_string &&str) noexcept
 	{
 		if (buffer)
@@ -48,6 +73,10 @@ template <void *(*allocator)(size_t), void (*deallocator)(void *)> class gold_ba
 		return *this;
 	}
 
+	/*
+	 * Constructor
+	 * <param name="str">C String to copy to internal buffer</param>
+	 */
 	gold_base_string(const char *str)
 	{
 		if (!str)
@@ -92,6 +121,9 @@ template <void *(*allocator)(size_t), void (*deallocator)(void *)> class gold_ba
 		return !strcmp(buffer, str);
 	}
 
+	/*
+	 * Convertion from gold_base_string to std::string_view
+	 */
 	operator std::string_view() const
 	{
 		return buffer;
@@ -108,21 +140,35 @@ template <void *(*allocator)(size_t), void (*deallocator)(void *)> class gold_ba
 		return buffer[index];
 	}
 
+	/*
+	* <returns>Raw string</returns>
+	*/
 	char *c_string() const
 	{
 		return buffer;
 	}
 
+	/*
+	* <returns>Length of string</returns>
+	*/
 	size_t length() const
 	{
 		return strlen(buffer);
 	}
 
+	/*
+	* <returns>Size of current allocation</returns>
+	*/
 	size_t allocated_size() const
 	{
 		return buffer_length;
 	}
 
+	/*
+	* Resize internal buffer, cuts off existing string if the new size is smaller than old size
+	* Allocates an additional byte for zero terminator
+	* <param name="size">New size of buffer</param>
+	*/
 	void resize(size_t size)
 	{
 		auto new_buffer = reinterpret_cast<char *>(allocator(size + 1));
@@ -141,16 +187,27 @@ template <void *(*allocator)(size_t), void (*deallocator)(void *)> class gold_ba
 		buffer_length = size;
 	}
 
+	/*
+	* Resize buffer to 0 bytes
+	*/
 	void clear()
 	{
 		resize(0);
 	}
 
+	/*
+	* Whether there's either no allocation or the length of the buffer is 0 bytes
+	*/
 	bool is_empty() const
 	{
 		return !buffer || !buffer_length;
 	}
 
+	/*
+	* <param name="index">Index to use as start of substring, index above allocated size is invalid</param>
+	* <param name="count">Amount of characters to include in substring starting from starting index, defaults to end of the string</param>
+	* <returns>A new string constructed from the characters between index and index + count</returns>
+	*/
 	gold_base_string substring(size_t index, size_t count = npos) const
 	{
 		if (index >= buffer_length)
@@ -168,6 +225,11 @@ template <void *(*allocator)(size_t), void (*deallocator)(void *)> class gold_ba
 		return str;
 	}
 
+	/*
+	 * <param name="sequence">Sequence of characters to search for</param>
+	 * <param name="offset">Starting index to search from</param>
+	 * <returns>Starting index of where sequence of characters has first occured, or npos if not found</returns>
+	 */
 	size_t find(std::string_view sequence, size_t offset = 0) const
 	{
 		if (sequence.empty() || offset >= buffer_length)
@@ -185,6 +247,11 @@ template <void *(*allocator)(size_t), void (*deallocator)(void *)> class gold_ba
 		return npos;
 	}
 
+	/*
+	 * <param name="sequence">Sequence of characters to search for</param>
+	 * <param name="offset">Starting index to search from</param>
+	 * <returns>Starting index of where sequence of characters has last occured, or npos if not found</returns>
+	 */
 	size_t find_last(std::string_view sequence, size_t offset = 0) const
 	{
 		if (sequence.empty() || offset >= buffer_length)
@@ -205,6 +272,11 @@ template <void *(*allocator)(size_t), void (*deallocator)(void *)> class gold_ba
 		return last_found;
 	}
 
+	/*
+	 * <param name="sequence">Sequence of characters to search for</param>
+	 * <param name="offset">Starting index to search from</param>
+	 * <returns>Starting index of where sequence of characters has first not occured, or npos if not found</returns>
+	 */
 	size_t find_first_not_of(std::string_view sequence, size_t offset = 0) const
 	{
 		if (sequence.empty() || offset >= buffer_length)
@@ -222,6 +294,11 @@ template <void *(*allocator)(size_t), void (*deallocator)(void *)> class gold_ba
 		return npos;
 	}
 
+	/*
+	 * <param name="sequence">Sequence of characters to search for</param>
+	 * <param name="offset">Starting index to search from</param>
+	 * <returns>Starting index of where sequence of characters has last not occured, or npos if not found</returns>
+	 */
 	size_t find_last_not_of(std::string_view sequence, size_t offset = 0) const
 	{
 		if (sequence.empty() || offset >= buffer_length)
@@ -242,11 +319,19 @@ template <void *(*allocator)(size_t), void (*deallocator)(void *)> class gold_ba
 		return found_last;
 	}
 
+	/*
+	 * <param name="sequence">Sequence of characters to search for</param>
+	 * <returns>Whether string contains sequence of characters</returns>
+	 */
 	bool contains(std::string_view sequence) const
 	{
 		return find(sequence) != npos;
 	}
 
+	/*
+	 * <param name="sequence">Sequence of characters to search for</param>
+	 * <returns>Amount of times sequence occured in string</returns>
+	 */
 	size_t count(std::string_view sequence) const
 	{
 		size_t i = 0, offset = 0;
@@ -263,6 +348,9 @@ template <void *(*allocator)(size_t), void (*deallocator)(void *)> class gold_ba
 		return i;
 	}
 
+	/*
+	 * <returns>New string with whitespace trimmed on left and right side of string</returns>
+	 */
 	gold_base_string trim() const
 	{
 		if (is_empty())
@@ -279,6 +367,10 @@ template <void *(*allocator)(size_t), void (*deallocator)(void *)> class gold_ba
 		return str;
 	}
 
+	/*
+	 * <param name="delimiter">Sequence of characters to split string by</param>
+	 * <returns>List of strings splitted by delimiter</returns>
+	 */
 	gold_vector<gold_base_string> split(std::string_view delimiter) const
 	{
 		if (is_empty())
@@ -296,4 +388,7 @@ template <void *(*allocator)(size_t), void (*deallocator)(void *)> class gold_ba
 	}
 };
 
+/*
+* String with default gold framework memory allocator and deallocator
+*/
 using gold_string = gold_base_string<gold_global_allocate, gold_global_deallocate>;

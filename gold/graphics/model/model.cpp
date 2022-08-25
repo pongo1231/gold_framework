@@ -190,13 +190,18 @@ bool gold_model::is_colliding_with(const gold_model &model, const gold_vector3 &
 
 gold_unique_ptr<gold_model> gold_model::load_from_obj(std::string_view filename)
 {
+	return load_from_obj(filename, "shaders/cube_vert.glsl", "shaders/cube_frag.glsl");
+}
+
+gold_unique_ptr<gold_model> gold_model::load_from_obj(std::string_view filename, std::string_view vertex_shader, std::string_view fragment_shader)
+{
 	if (!gold_file::does_file_exist(filename))
 		return nullptr;
 
 	auto mesh           = gold_mesh::load_from_obj(filename);
 
-	auto vert_shader    = gold_shader::load_from_file("shaders/cube_vert.glsl", GL_VERTEX_SHADER);
-	auto frag_shader    = gold_shader::load_from_file("shaders/cube_frag.glsl", GL_FRAGMENT_SHADER);
+	auto vert_shader    = gold_shader::load_from_file(vertex_shader, GL_VERTEX_SHADER);
+	auto frag_shader    = gold_shader::load_from_file(fragment_shader, GL_FRAGMENT_SHADER);
 	auto shader_program = gold_unique_ptr<gold_shader_program>::create(std::move(vert_shader), std::move(frag_shader));
 
 	return gold_unique_ptr<gold_model>::create(std::move(mesh), std::move(shader_program));

@@ -14,6 +14,9 @@ extern "C"
 
 #include <string_view>
 
+/*
+* Script manager
+*/
 class gold_scriptmanager
 {
 	struct script
@@ -38,16 +41,45 @@ class gold_scriptmanager
 	gold_vector<custom_function> custom_functions;
 
   public:
+	/*
+	* Register lua script
+	* <param name="filename">Path to file</param>
+	*/
 	void register_script(std::string_view filename);
+	/*
+	 * Register lua scripts inside a folder
+	 * <param name="path">Path to folder</param>
+	 */
 	void register_scripts(std::string_view path);
+	/*
+	 * Unregister a registered script by path
+	 * <param name="filename">Path of script to unregister</param>
+	 */
 	void unregister_script(std::string_view filename);
+	/*
+	 * Unregister all registered scripts
+	 */
 	void unregister_all_scripts();
 
+	/*
+	* Execute all registered scripts
+	*/
 	void execute_all_scripts();
+	/*
+	 * Execute a registered script
+	 * <param name="filename">Path of registered script to execute</param>
+	 */
 	void execute_script(std::string_view filename);
 
+	/*
+	 * <returns>List of all registered scripts</returns>
+	 */
 	const gold_vector<script> &get_all_scripts() const;
 
+	/*
+	 * Register a custom function to scripting runtime
+	 * <param name="custom_function">Custom function to register</param>
+	 */
 	void add_function(const gold_scriptmanager::custom_function &custom_function);
 };
 

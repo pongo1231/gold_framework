@@ -1,37 +1,20 @@
--- Momentane Richtung
-local direction = "right"
+platforms = {
+    { name = "platform1" },
+    { name = "platform2" },
+    { name = "platform3" }
+}
 
--- Geschwindigkeit
-local speed = 6.0
+for i, platform in ipairs(platforms) do
+    local x, y, z = get_entity_position(platform.name)
+    platform.origin = { x = x, y = y, z = z }
+end
 
--- Funktion wird jeden Frame aufgerufen
+time = 0
+
 function on_tick(delta_time)
-    local x, y, z = get_entity_position("cube")
-    if x > 9.0 then -- Rechte Seite, nach unten bewegen
-        x = 9.0
-        direction = "down"
-    elseif x < -9.0 then -- Linke Seite, nach oben bewegen
-        x = -9.0
-        direction = "up"
-    end
-    if z > 9.0 then -- Obere Seite, nach rechts bewegen
-        z = 9.0
-        direction = "right"
-    elseif z < -9.0 then -- Untere Seite, nach links bewegen
-        z = -9.0
-        direction = "left"
-    end
+   time = time + delta_time
 
-    if direction == "up" then -- Oben
-        z = z + speed * delta_time
-    elseif direction == "right" then -- Rechts
-        x = x + speed * delta_time
-    elseif direction == "down" then -- Unten
-        z = z - speed * delta_time 
-    elseif direction == "left" then -- Links
-        x = x - speed * delta_time
-    end
-
-    -- Neue Position
-    set_entity_position("cube", x, y, z)
+   for i, platform in ipairs(platforms) do
+        set_entity_position(platform.name, platform.origin.x + math.sin(time * i) * 2.0, platform.origin.y, platform.origin.z + math.sin(time * i) * 2.0)
+   end
 end

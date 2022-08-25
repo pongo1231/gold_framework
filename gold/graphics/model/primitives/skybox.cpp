@@ -9,6 +9,9 @@
 
 #include <GL/glew.h>
 
+/*
+ * Vertices used for the skybox (position, texture uv, color, normals)
+ */
 static const gold_vector<gold_vertex> sky_vertices = {
 	{ -1.f, 1.f, -1.f, 0.f, 0.f, .5f, .5f, 1.f, 1.f },  // 0
 	{ -1.f, -1.f, -1.f, 1.f, 0.f, .3f, .3f, .4f, 1.f }, // 1
@@ -23,6 +26,9 @@ static const gold_vector<gold_vertex> sky_vertices = {
 	{ 1.f, 1.f, 1.f, 1.f, 1.f, .5f, .5f, 1.f, 1.f },  // 8
 };
 
+/*
+ * Indices used for skybox
+ */
 static const gold_vector<std::uint32_t> sky_indices = { 0, 1, 2, 2, 5, 0,
 
 	                                                    4, 1, 3, 3, 6, 4,
