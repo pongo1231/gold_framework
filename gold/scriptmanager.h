@@ -14,8 +14,6 @@ extern "C"
 
 #include <string_view>
 
-class gold_input;
-
 class gold_scriptmanager
 {
 	struct script
@@ -31,6 +29,14 @@ class gold_scriptmanager
 
 	gold_vector<script> script_states;
 
+	struct custom_function
+	{
+		gold_string function_name;
+		int(*function)(lua_State*) = nullptr;
+	};
+
+	gold_vector<custom_function> custom_functions;
+
   public:
 	void register_script(std::string_view filename);
 	void register_scripts(std::string_view path);
@@ -41,6 +47,8 @@ class gold_scriptmanager
 	void execute_script(std::string_view filename);
 
 	const gold_vector<script> &get_all_scripts() const;
+
+	void add_function(const gold_scriptmanager::custom_function &custom_function);
 };
 
 inline gold_scriptmanager script_manager;

@@ -16,3 +16,20 @@
 #include "gold/util/string.h"
 #include "gold/util/time.h"
 #include "gold/util/vertex.h"
+
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+
+inline void gold_init()
+{
+	#ifndef _NDEBUG
+	AllocConsole();
+
+	SetConsoleTitleA("Gold Debug");
+	DeleteMenu(GetSystemMenu(GetConsoleWindow(), FALSE), SC_CLOSE, MF_BYCOMMAND);
+
+	static auto gold_consoleout    = std::ofstream("CONOUT$");
+	std::cout.rdbuf(gold_consoleout.rdbuf());
+	std::cout.clear();
+	#endif
+}

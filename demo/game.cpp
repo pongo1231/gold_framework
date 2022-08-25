@@ -1,8 +1,5 @@
 #include "game.h"
 
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-
 #include <cstdio>
 #include <fstream>
 #include <sstream>
@@ -18,6 +15,8 @@ error_code gold_game::init(HINSTANCE inst)
 	if (did_init)
 		return error_code::already_run;
 
+	gold_init();
+
 	graphics_device = gold_unique_ptr<gold_graphicsdevice>::create();
 
 	camera          = gold_unique_ptr<gold_camera>::create(graphics_device.handle());
@@ -31,11 +30,11 @@ error_code gold_game::init(HINSTANCE inst)
 
 	texture = gold_ref_ptr<gold_texture>::create("textures/wall.jpg");
 
-	plane   = gold_factory.create_entity<gold_model_type::cube>("plane");
-	plane->set_position({ 0.f, -2.f, 0.f });
-	plane->get_model()->set_scale({ 10.f, 1.f, 10.f });
-	plane->get_model()->set_texture(texture);
-	plane->has_gravity = false;
+	start_platform   = gold_factory.create_entity<gold_model_type::cube>("start_platform");
+	start_platform->set_position({ 0.f, -2.f, 0.f });
+	start_platform->get_model()->set_scale({ 10.f, 1.f, 10.f });
+	start_platform->get_model()->set_texture(texture);
+	start_platform->has_gravity = false;
 
 	cube = gold_factory.create_entity<gold_model_type::cube>("cube");
 	cube->set_position({ 0.f, 0.f, 0.f });
@@ -45,6 +44,12 @@ error_code gold_game::init(HINSTANCE inst)
 	player = gold_factory.create_entity<gold_model_type::cube>("player");
 	player->set_position({ 0.f, 30.f, 1.f });
 	camera->attach_to_entity(player);
+
+	platform1 = gold_factory.create_entity<gold_model_type::cube>("platform1");
+	platform1->set_position({ 0.f, -1.f, 2.f });
+	platform1->get_model()->set_scale({ 10.f, 1.f, 10.f });
+	platform1->get_model()->set_texture(texture);
+	platform1->has_gravity = false;
 
 	skybox = gold_unique_ptr<gold_skybox>(gold_skybox::create());
 
@@ -145,8 +150,11 @@ error_code gold_game::run()
 	cube->update(camera.handle());
 
 	player->update(camera.handle());
+	if (player->get_position().y < -10.f)
+		player->set_position({ 0.f, 30.f, 1.f });
 
-	plane->update(camera.handle());
+	start_platform->update(camera.handle());
+	platform1->update(camera.handle());
 
 	model->render(camera.handle());
 

@@ -1,8 +1,13 @@
 #pragma once
 
 #include <iostream>
+#include <fstream>
 
 #define GOLD_CLASSNAME TEXT("gold_framework")
 
-#define LOG(x) std::cout << x << "\n"
+#ifdef _NDEBUG
+#define LOG(x) std::cout << x << "\n";
+#else
+#define LOG(x) std::cout << x << std::endl;
+#endif
 #define LOG_ERROR(x) LOG("Error: " << x)

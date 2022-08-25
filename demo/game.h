@@ -15,9 +15,12 @@ class gold_game
 
 	bool did_init = false;
 
-	gold_entity* plane;
+	gold_entity* start_platform;
 	gold_entity* cube;
 	gold_entity *player;
+	gold_entity *platform1;
+	gold_entity *platform2;
+	gold_entity *platform3;
 	gold_unique_ptr<gold_skybox> skybox;
 	gold_unique_ptr<gold_model> model;
 	gold_unique_ptr<gold_model> model2;

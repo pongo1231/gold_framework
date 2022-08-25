@@ -861,7 +861,7 @@ GLAPI void GLAPIENTRY glClearColor (GLclampf red, GLclampf green, GLclampf blue,
 GLAPI void GLAPIENTRY glClearDepth (GLclampd depth);
 GLAPI void GLAPIENTRY glClearIndex (GLfloat c);
 GLAPI void GLAPIENTRY glClearStencil (GLint s);
-GLAPI void GLAPIENTRY glClipPlane (GLenum plane, const GLdouble *equation);
+GLAPI void GLAPIENTRY glClipPlane (GLenum start_platform, const GLdouble *equation);
 GLAPI void GLAPIENTRY glColor3b (GLbyte red, GLbyte green, GLbyte blue);
 GLAPI void GLAPIENTRY glColor3bv (const GLbyte *v);
 GLAPI void GLAPIENTRY glColor3d (GLdouble red, GLdouble green, GLdouble blue);
@@ -945,7 +945,7 @@ GLAPI void GLAPIENTRY glFrustum (GLdouble left, GLdouble right, GLdouble bottom,
 GLAPI GLuint GLAPIENTRY glGenLists (GLsizei range);
 GLAPI void GLAPIENTRY glGenTextures (GLsizei n, GLuint *textures);
 GLAPI void GLAPIENTRY glGetBooleanv (GLenum pname, GLboolean *params);
-GLAPI void GLAPIENTRY glGetClipPlane (GLenum plane, GLdouble *equation);
+GLAPI void GLAPIENTRY glGetClipPlane (GLenum start_platform, GLdouble *equation);
 GLAPI void GLAPIENTRY glGetDoublev (GLenum pname, GLdouble *params);
 GLAPI GLenum GLAPIENTRY glGetError (void);
 GLAPI void GLAPIENTRY glGetFloatv (GLenum pname, GLfloat *params);
@@ -17915,8 +17915,8 @@ typedef void (GLAPIENTRY * PFNGLTRANSLATEXPROC) (GLfixed x, GLfixed y, GLfixed z
 #ifndef GL_REGAL_ES1_1_compatibility
 #define GL_REGAL_ES1_1_compatibility 1
 
-typedef void (GLAPIENTRY * PFNGLCLIPPLANEFPROC) (GLenum plane, const GLfloat* equation);
-typedef void (GLAPIENTRY * PFNGLCLIPPLANEXPROC) (GLenum plane, const GLfixed* equation);
+typedef void (GLAPIENTRY * PFNGLCLIPPLANEFPROC) (GLenum start_platform, const GLfloat* equation);
+typedef void (GLAPIENTRY * PFNGLCLIPPLANEXPROC) (GLenum start_platform, const GLfixed* equation);
 typedef void (GLAPIENTRY * PFNGLGETCLIPPLANEFPROC) (GLenum pname, GLfloat eqn[4]);
 typedef void (GLAPIENTRY * PFNGLGETCLIPPLANEXPROC) (GLenum pname, GLfixed eqn[4]);
 typedef void (GLAPIENTRY * PFNGLGETFIXEDVPROC) (GLenum pname, GLfixed* params);

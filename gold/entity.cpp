@@ -103,17 +103,10 @@ void gold_entity::move(const gold_vector3 &offset)
 	auto old_position = get_position();
 	set_position(old_position + offset);
 
-	for (const auto &[name, entity] : gold_factory.get_all_entities())
+	if (is_colliding_with_anything())
 	{
-		if (entity.handle() == this)
-			continue;
-
-		if (is_colliding_with(*entity))
-		{
-			set_position(old_position);
-			velocity = { };
-			break;
-		}
+		set_position(old_position);
+		velocity = {};
 	}
 }
 
@@ -126,17 +119,10 @@ void gold_entity::move_relative(const gold_vector3 &offset)
 	auto old_position   = get_position();
 	set_position(old_position + (forward * offset.x) + (up * offset.y) + (left * offset.z));
 
-	for (const auto &[name, entity] : gold_factory.get_all_entities())
+	if (is_colliding_with_anything())
 	{
-		if (entity.handle() == this)
-			continue;
-
-		if (is_colliding_with(*entity))
-		{
-			set_position(old_position);
-			velocity = {};
-			break;
-		}
+		set_position(old_position);
+		velocity = {};
 	}
 }
 
