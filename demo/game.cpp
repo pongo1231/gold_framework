@@ -10,10 +10,10 @@ static size_t demo_current_script_index      = 0;
 
 gold_ref_ptr<gold_texture> texture;
 
-error_code gold_game::init(HINSTANCE inst)
+void gold_game::init(HINSTANCE inst)
 {
 	if (did_init)
-		return error_code::already_run;
+		return;
 
 	gold_init();
 
@@ -23,16 +23,13 @@ error_code gold_game::init(HINSTANCE inst)
 	camera->set_fov(45.f, 1280.f / 720.f);
 	camera->rotatable     = true;
 
-	error_code error_code = error_code::success;
-
-	if ((error_code = graphics_device->init(inst, 1600, 900)) != error_code::success)
-		return error_code;
+	graphics_device->init(inst, 1600, 900);
 
 	texture = gold_ref_ptr<gold_texture>::create("textures/wall.jpg");
 
 	start_platform   = gold_factory.create_entity<gold_model_type::cube>("start_platform");
 	start_platform->set_position({ 0.f, -2.f, 0.f });
-	start_platform->get_model()->set_scale({ 10.f, 1.f, 10.f });
+	start_platform->get_model()->set_scale({ 5.f, 1.f, 5.f });
 	start_platform->get_model()->set_texture(texture);
 	start_platform->has_gravity = false;
 
@@ -46,31 +43,40 @@ error_code gold_game::init(HINSTANCE inst)
 	camera->attach_to_entity(player);
 
 	platform1 = gold_factory.create_entity<gold_model_type::cube>("platform1");
-	platform1->set_position({ 0.f, -1.f, 2.f });
-	platform1->get_model()->set_scale({ 10.f, 1.f, 10.f });
+	platform1->set_position({ 0.f, 0.f, 20.f });
+	platform1->get_model()->set_scale({ 5.f, 5.f, 5.f });
 	platform1->get_model()->set_texture(texture);
 	platform1->has_gravity = false;
+
+	platform2              = gold_factory.create_entity<gold_model_type::obj_model>("platform2", "models/cube.obj");
+	platform2->set_position({ 0.f, 4.f, 40.f });
+	platform2->get_model()->set_scale({ 3.f, 3.f, 3.f });
+	platform2->get_model()->set_texture(texture);
+	platform2->has_gravity = false;
+
+	platform3              = gold_factory.create_entity<gold_model_type::cube>("platform3");
+	platform3->set_position({ 0.f, 8.f, 60.f });
+	platform3->get_model()->set_scale({ 2.f, 2.f, 2.f });
+	platform3->get_model()->set_texture(texture);
+	platform3->has_gravity = false;
 
 	skybox = gold_unique_ptr<gold_skybox>(gold_skybox::create());
 
 	script_manager.register_scripts("scripts");
 
-	model = gold_model::load_from_obj("models/cube.obj");
-	model->set_position({ 0.f, -10.f, 5.f });
+	model = gold_model::load_from_obj("models/building.obj");
+	model->set_position({ 30.f, 0.f, 0.f });
 	model->set_texture(texture);
-	model->set_scale({ 10.f, 10.f, 10.f });
+	model->set_scale({ 2.f, 2.f, 2.f });
 
-	model2 = gold_model::load_from_obj("models/buildingno.obj");
+	model2 = gold_model::load_from_obj("models/building.obj");
 	model2->set_position({ 30.f, 0.f, -30.f });
-
-	return error_code::success;
 }
 
-error_code gold_game::run()
+bool gold_game::run()
 {
-	error_code error_code = error_code::success;
-	if ((error_code = graphics_device->begin_render()) != error_code::success)
-		return error_code;
+	if (!graphics_device->begin_render())
+		return false;
 
 	gold_input.run();
 
@@ -109,6 +115,9 @@ error_code gold_game::run()
 		camera->set_look_at({ player_pos.x, player_pos.y, player_pos.z });
 	}
 
+	gold_global_light_color = { .5f + std::sinf(GetTickCount64() * .0005f) * .5f, .5f + std::sinf(GetTickCount64() * .001f) * .5f,
+		                        .5f + std::sinf(GetTickCount64() * .002f) * .5f };
+
 	gold_vector3 move;
 
 	if (gold_input.is_key_just_pressed(VK_SPACE) && player->is_on_ground())
@@ -146,19 +155,14 @@ error_code gold_game::run()
 	camera->update();
 
 	skybox->render(camera.handle());
+	model->render(camera.handle());
+	model2->render(camera.handle());
 
-	cube->update(camera.handle());
-
-	player->update(camera.handle());
 	if (player->get_position().y < -10.f)
 		player->set_position({ 0.f, 30.f, 1.f });
 
-	start_platform->update(camera.handle());
-	platform1->update(camera.handle());
-
-	model->render(camera.handle());
-
-	model2->render(camera.handle());
+	for (const auto &[name, entity] : gold_factory.get_all_entities())
+		entity->update(camera.handle());
 
 	glUseProgram(0);
 
@@ -167,14 +171,12 @@ error_code gold_game::run()
 	    << script_manager.get_all_scripts()[demo_current_script_index].script_name.c_string();
 
 	auto str  = oss.str();
-	auto wstr = std::wstring(str.begin(), str.end());
 
-	SetWindowText(graphics_device->get_wnd(), wstr.c_str());
+	graphics_device->set_window_title(str.c_str());
 
-	if ((error_code = graphics_device->end_render()) != error_code::success)
-		return error_code;
+	graphics_device->end_render();
 
-	return error_code::success;
+	return true;
 }
 
 gold_camera *gold_game::get_camera() const

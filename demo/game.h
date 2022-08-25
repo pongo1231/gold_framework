@@ -26,8 +26,8 @@ class gold_game
 	gold_unique_ptr<gold_model> model2;
 
   public:
-	error_code init(HINSTANCE inst);
-	error_code run();
+	void init(HINSTANCE inst);
+	bool run();
 
 	gold_camera *get_camera() const;
 };

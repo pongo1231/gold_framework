@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gold/util/vector3.h"
+#include "gold/util/string.h"
 
 #define WIN32_LEAN_AND_MEAN
 #include <GL/glew.h>
@@ -28,14 +29,16 @@ class gold_graphicsdevice
   public:
 	~gold_graphicsdevice();
 
-	error_code init(HINSTANCE instance, size_t width, size_t height, std::wstring_view title_name = L"Gold Game");
-	error_code begin_render();
-	error_code end_render();
+	void init(HINSTANCE instance, size_t width, size_t height, std::wstring_view title_name = L"Gold Game");
+	bool begin_render();
+	void end_render();
 
 	HGLRC get_context() const;
 	HWND get_wnd() const;
 	float get_last_frame_time() const;
 	gold_vector3 get_last_cursor_distance() const;
+
+	void set_window_title(const gold_string &title);
 
   private:
 	static LRESULT CALLBACK wnd_proc(HWND wnd, UINT msg, WPARAM param1, LPARAM param2);

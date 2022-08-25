@@ -1,6 +1,5 @@
 #include "graphics_device.h"
 
-#include "gold/error_code.h"
 #include "gold/util/assert.h"
 #include "gold/util/macros.h"
 #include "gold/util/matrix.h"
@@ -19,10 +18,10 @@ gold_graphicsdevice::~gold_graphicsdevice()
 		wglDeleteContext(gl_context);
 }
 
-error_code gold_graphicsdevice::init(HINSTANCE inst, size_t width, size_t height, std::wstring_view title_name)
+void gold_graphicsdevice::init(HINSTANCE inst, size_t width, size_t height, std::wstring_view title_name)
 {
 	if (gl_context)
-		return error_code::already_exists;
+		gold_assert("gold_graphicsdevice::init context already exists!");
 
 	this->width = width;
 	this->height = height;
@@ -40,9 +39,9 @@ error_code gold_graphicsdevice::init(HINSTANCE inst, size_t width, size_t height
 	auto screen_height = GetSystemMetrics(SM_CYSCREEN);
 
 	if (width > screen_width)
-		return error_code::width_too_big;
+		gold_assert("gold_graphicsdevice::init width > screen width !");
 	if (height > screen_height)
-		return error_code::height_too_big;
+		gold_assert("gold_graphicsdevice::init height > screen height !");
 
 	DWORD flags = WS_VISIBLE | WS_POPUP;
 	if (width != screen_width || height != screen_height)
@@ -50,7 +49,7 @@ error_code gold_graphicsdevice::init(HINSTANCE inst, size_t width, size_t height
 
 	if (FAILED(wnd = CreateWindowEx(NULL, GOLD_CLASSNAME, title_name.data(), flags, CW_USEDEFAULT, CW_USEDEFAULT, width,
 	                                height, NULL, NULL, inst, NULL)))
-		return error_code::graphics_init_windowcreate_failed;
+		gold_assert("gold_graphicsdevice::init failed to create window!");
 
 	// Taken from https://www.khronos.org/opengl/wiki/Creating_an_OpenGL_Context_(WGL)
 	PIXELFORMATDESCRIPTOR pfd = { sizeof(PIXELFORMATDESCRIPTOR),
@@ -86,31 +85,24 @@ error_code gold_graphicsdevice::init(HINSTANCE inst, size_t width, size_t height
 
 	gl_context = wglCreateContext(device_context);
 	if (!gl_context)
-		return error_code::graphics_init_graphics_failed;
+		gold_assert("gold_graphicsdevice::init failed to create context!");
 
 	if (!wglMakeCurrent(device_context, gl_context))
-	{
-		LOG_ERROR("wglMakeCurrent failed!");
-
-		return error_code::graphics_init_graphics_failed;
-	}
+		gold_assert("gold_graphicsdevice::init wglMakeCurrent failed!");
 
 	glewExperimental = true;
 	auto err_id      = glewInit();
 	if (err_id != GLEW_OK)
 	{
 		LOG_ERROR("glewInit failed (" << glewGetErrorString(err_id) << ")!");
-
-		return error_code::graphics_init_graphics_failed;
+		gold_assert("gold_graphicsdevice::init glewInit failed!");
 	}
-
-	return error_code::success;
 }
 
-error_code gold_graphicsdevice::begin_render()
+bool gold_graphicsdevice::begin_render()
 {
 	if (is_in_render)
-		return error_code::already_run;
+		gold_assert("gold_graphicsdevice::begin_render already called before, call end_render first!");
 
 	if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 	{
@@ -118,7 +110,7 @@ error_code gold_graphicsdevice::begin_render()
 		DispatchMessage(&msg);
 
 		if (msg.message == WM_QUIT)
-			return error_code::stopped;
+			return false;
 	}
 
 	auto time            = GetTickCount64();
@@ -144,13 +136,13 @@ error_code gold_graphicsdevice::begin_render()
 
 	is_in_render = true;
 
-	return error_code::success;
+	return true;
 }
 
-error_code gold_graphicsdevice::end_render()
+void gold_graphicsdevice::end_render()
 {
 	if (!is_in_render)
-		return error_code::run_begin_first;
+		gold_assert("gold_graphicsdevice::end_render call begin_render first!");
 
 	glUseProgram(0);
 
@@ -163,8 +155,6 @@ error_code gold_graphicsdevice::end_render()
 	last_frame_timestamp = timestamp;
 
 	is_in_render         = false;
-
-	return error_code::success;
 }
 
 HGLRC gold_graphicsdevice::get_context() const
@@ -193,4 +183,9 @@ LRESULT CALLBACK gold_graphicsdevice::wnd_proc(HWND wnd, UINT msg, WPARAM param1
 gold_vector3 gold_graphicsdevice::get_last_cursor_distance() const
 {
 	return last_cursor_distance;
+}
+
+void gold_graphicsdevice::set_window_title(const gold_string &title)
+{
+	SetWindowTextA(wnd, title.c_string());
 }

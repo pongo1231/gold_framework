@@ -1,6 +1,5 @@
 #include "gold/camera.h"
 #include "gold/entity.h"
-#include "gold/error_code.h"
 #include "gold/graphics/graphics_device.h"
 #include "gold/graphics/mesh.h"
 #include "gold/graphics/model/factory.h"
@@ -16,6 +15,7 @@
 #include "gold/util/string.h"
 #include "gold/util/time.h"
 #include "gold/util/vertex.h"
+#include "gold/util/light.h"
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>

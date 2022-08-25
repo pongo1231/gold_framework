@@ -59,6 +59,8 @@ class gold_factory
 		if (!entity_pool.contains(name))
 			gold_assert("gold_weak_ptr::create_entity entity_pool does not contain new entry?");
 
+		LOG("Created object " << name);
+
 		return entity_pool.at(name).handle();
 	}
 

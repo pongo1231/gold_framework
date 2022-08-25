@@ -7,6 +7,7 @@
 #include "gold/graphics/texture.h"
 #include "gold/util/file.h"
 #include "gold/util/vertex.h"
+#include "gold/util/light.h"
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
@@ -18,8 +19,6 @@ gold_model::gold_model(gold_unique_ptr<gold_mesh> &&mesh, gold_unique_ptr<gold_s
     : mesh(std::move(mesh)), shader_program(std::move(shader_program))
 {
 	this->shader_program->bind();
-	this->shader_program->set_uniform_vector3("uni_light_pos", { 0.f, 20.f, 0.f });
-	this->shader_program->set_uniform_vector3("uni_light_col", { .5f, .5f, .6f });
 	this->shader_program->set_uniform_float("uni_ambient_modifier", ambient);
 	this->shader_program->set_uniform_float("uni_spec_modifier", specular_multiplier);
 	this->shader_program->set_uniform_float("uni_shininess", shininess);
@@ -67,6 +66,9 @@ void gold_model::render(const gold_camera *camera)
 
 		glUniformMatrix4fv(shader_program->get_view_uniform_location(), 1, GL_FALSE,
 		                   glm::value_ptr(camera->get_view()));
+
+		this->shader_program->set_uniform_vector3("uni_light_pos", gold_global_light_position);
+		this->shader_program->set_uniform_vector3("uni_light_col", gold_global_light_color);
 	}
 
 	auto matrix = get_model_matrix();
@@ -133,7 +135,7 @@ glm::mat4 gold_model::get_model_matrix() const
 	                     { rotation.x == 0.f ? 1.f : std::fmod(rotation.x / 360.f, 1.f),
 	                       rotation.y == 0.f ? 1.f : std::fmod(rotation.y / 360.f, 1.f),
 	                       rotation.z == 0.f ? 1.f : std::fmod(rotation.z / 360.f, 1.f) });
-	matrix = glm::translate(matrix, { position.x, position.y, position.z });
+	matrix = glm::translate(matrix, { position.x / scale.x, position.y / scale.y, position.z / scale.z });
 
 	return matrix;
 }
