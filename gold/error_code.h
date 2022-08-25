@@ -9,5 +9,7 @@ enum class error_code
 	graphics_run_failed               = -4,
 	already_exists                    = -5,
 	already_run                       = -6,
-	run_begin_first                   = -7
+	run_begin_first                   = -7,
+	width_too_big                     = -8,
+	height_too_big                    = -9
 };

@@ -19,7 +19,12 @@ class gold_camera
 
 	gold_entity* parent = nullptr;
 
+	float yaw = 0.f;
+	float pitch = 0.f;
+
   public:
+	bool rotatable = false;
+
 	gold_camera(gold_graphicsdevice *graphics_device);
 
 	void update();

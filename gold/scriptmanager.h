@@ -16,7 +16,7 @@ extern "C"
 
 class gold_input;
 
-class scriptmanager
+class gold_scriptmanager
 {
 	struct script
 	{
@@ -33,10 +33,14 @@ class scriptmanager
 
   public:
 	void register_script(std::string_view filename);
+	void register_scripts(std::string_view path);
 	void unregister_script(std::string_view filename);
+	void unregister_all_scripts();
 
 	void execute_all_scripts();
 	void execute_script(std::string_view filename);
+
+	const gold_vector<script> &get_all_scripts() const;
 };
 
-inline scriptmanager scriptmanager;
+inline gold_scriptmanager script_manager;

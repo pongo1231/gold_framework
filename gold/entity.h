@@ -10,6 +10,9 @@ class gold_entity
 	gold_vector3 velocity;
 
   public:
+	bool has_gravity = true;
+
+  public:
 	gold_entity(gold_unique_ptr<gold_model> &&model);
 
 	void update(const gold_camera *camera);
@@ -23,6 +26,7 @@ class gold_entity
 	const gold_vector3 &get_rotation() const;
 
 	void add_velocity(const gold_vector3 &velocity);
+	void add_velocity_relative(const gold_vector3 &velocity);
 	void reset_velocity();
 	const gold_vector3 &get_velocity() const;
 
@@ -33,5 +37,9 @@ class gold_entity
 	void move(const gold_vector3 &offset);
 	void move_relative(const gold_vector3 &offset);
 
-	bool is_colliding_with(const gold_entity &entity) const;
+	bool is_colliding_with(const gold_entity &entity, const gold_vector3 &offset = {}) const;
+	bool is_colliding_with_anything(const gold_vector3 &offset = {}) const;
+	bool is_colliding_with_any_trigger(const gold_vector3 &offset = {}) const;
+
+	bool is_on_ground() const;
 };

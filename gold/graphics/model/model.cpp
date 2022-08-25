@@ -20,7 +20,7 @@ gold_model::gold_model(gold_unique_ptr<gold_mesh> &&mesh, gold_unique_ptr<gold_s
 	this->shader_program->bind();
 	this->shader_program->set_uniform_vector3("uni_light_pos", { 0.f, 20.f, 0.f });
 	this->shader_program->set_uniform_vector3("uni_light_col", { .5f, .5f, .6f });
-	this->shader_program->set_uniform_float("uni_ambient_modifier", .5f);
+	this->shader_program->set_uniform_float("uni_ambient_modifier", ambient);
 	this->shader_program->set_uniform_float("uni_spec_modifier", specular_multiplier);
 	this->shader_program->set_uniform_float("uni_shininess", shininess);
 	this->shader_program->unbind();
@@ -117,18 +117,18 @@ void gold_model::set_rotation(const gold_vector3 &rotation)
 
 const gold_vector3 &gold_model::get_scale() const
 {
-	return m_scale;
+	return scale;
 }
 
-void gold_model::set_scale(const gold_vector3 &_scale)
+void gold_model::set_scale(const gold_vector3 &scale)
 {
-	m_scale = _scale;
+	this->scale = scale;
 }
 
 glm::mat4 gold_model::get_model_matrix() const
 {
 	glm::mat4 matrix(1.f);
-	matrix = glm::scale(matrix, { m_scale.x, m_scale.y, m_scale.z });
+	matrix = glm::scale(matrix, { scale.x, scale.y, scale.z });
 	matrix = glm::rotate(matrix, 6.28319f,
 	                     { rotation.x == 0.f ? 1.f : std::fmod(rotation.x / 360.f, 1.f),
 	                       rotation.y == 0.f ? 1.f : std::fmod(rotation.y / 360.f, 1.f),
@@ -136,6 +136,15 @@ glm::mat4 gold_model::get_model_matrix() const
 	matrix = glm::translate(matrix, { position.x, position.y, position.z });
 
 	return matrix;
+}
+
+void gold_model::set_ambient_multiplier(float ambient)
+{
+	this->ambient = ambient;
+
+	shader_program->bind();
+	shader_program->set_uniform_float("uni_ambient_modifier", ambient);
+	shader_program->unbind();
 }
 
 void gold_model::set_specular_multiplier(float specular_multiplier)
@@ -162,18 +171,19 @@ void gold_model::get_bounding_box(gold_vector3 &min, gold_vector3 &max) const
 	max = box_max;
 }
 
-bool gold_model::is_colliding_with(const gold_model &model) const
+bool gold_model::is_colliding_with(const gold_model &model, const gold_vector3 &offset) const
 {
 	auto const &other_pos     = model.position;
 	auto const &other_box_min = model.box_min;
 	auto const &other_box_max = model.box_max;
+	auto const &other_scale   = model.scale;
 
-	return position.x + box_max.x > other_pos.x + other_box_min.x
-	        && position.x + box_min.x < other_pos.x + other_box_max.x
-	    && position.y + box_max.y > other_pos.y + other_box_min.y
-	        && position.y + box_min.y < other_pos.y + other_box_max.y
-	    && position.z + box_max.z > other_pos.z + other_box_min.z
-	        && position.z + box_min.z < other_pos.z + other_box_max.z;
+	return position.x + offset.x + box_max.x * scale.x > other_pos.x + other_box_min.x * other_scale.x
+	    && position.x + offset.x + box_min.x * scale.x < other_pos.x + other_box_max.x * other_scale.x
+	    && position.y + offset.y + box_max.y * scale.y > other_pos.y + other_box_min.y * other_scale.y
+	    && position.y + offset.y + box_min.y * scale.y < other_pos.y + other_box_max.y * other_scale.y
+	    && position.z + offset.z + box_max.z * scale.z > other_pos.z + other_box_min.z * other_scale.z
+	    && position.z + offset.z + box_min.z * scale.z < other_pos.z + other_box_max.z * other_scale.z;
 }
 
 gold_unique_ptr<gold_model> gold_model::load_from_obj(std::string_view filename)
@@ -186,14 +196,6 @@ gold_unique_ptr<gold_model> gold_model::load_from_obj(std::string_view filename)
 	auto vert_shader    = gold_shader::load_from_file("shaders/cube_vert.glsl", GL_VERTEX_SHADER);
 	auto frag_shader    = gold_shader::load_from_file("shaders/cube_frag.glsl", GL_FRAGMENT_SHADER);
 	auto shader_program = gold_unique_ptr<gold_shader_program>::create(std::move(vert_shader), std::move(frag_shader));
-
-	shader_program->bind();
-	shader_program->set_uniform_vector3("uni_light_pos", { 0.f, 10.f, 10.f });
-	shader_program->set_uniform_vector3("uni_light_col", { 1.f, 1.f, 1.f });
-	shader_program->set_uniform_float("uni_ambient_modifier", .9f);
-	shader_program->set_uniform_float("uni_spec_modifier", 0.f);
-	shader_program->set_uniform_float("uni_shininess", 10.f);
-	shader_program->unbind();
 
 	return gold_unique_ptr<gold_model>::create(std::move(mesh), std::move(shader_program));
 }

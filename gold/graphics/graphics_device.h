@@ -20,6 +20,8 @@ class gold_graphicsdevice
 	LARGE_INTEGER last_frame_timestamp {};
 	float last_frame_time = 0.f;
 	gold_vector3 last_cursor_distance;
+	size_t width      = 0.f;
+	size_t height     = 0.f;
 
 	bool is_in_render = false;
 

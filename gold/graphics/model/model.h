@@ -17,8 +17,9 @@ class gold_model
 	gold_unique_ptr<gold_shader_program> shader_program;
 	gold_vector3 position;
 	gold_vector3 rotation;
-	gold_vector3 m_scale { 1.f, 1.f, 1.f };
+	gold_vector3 scale { 1.f, 1.f, 1.f };
 	gold_ref_ptr<gold_texture> texture;
+	float ambient             = .5f;
 	float specular_multiplier = 2.f;
 	float shininess           = 1.f;
 
@@ -26,6 +27,8 @@ class gold_model
 	gold_vector3 box_max;
 
   public:
+	bool is_trigger = false;
+
 	gold_model() = default;
 	gold_model(gold_unique_ptr<gold_mesh> &&mesh, gold_unique_ptr<gold_shader_program> &&shader_program);
 
@@ -46,11 +49,12 @@ class gold_model
 
 	glm::mat4 get_model_matrix() const;
 
+	void set_ambient_multiplier(float ambient);
 	void set_specular_multiplier(float specular_multiplier);
 	void set_shininess(float shininess);
 
 	void get_bounding_box(gold_vector3 &min, gold_vector3 &max) const;
-	bool is_colliding_with(const gold_model &model) const;
+	bool is_colliding_with(const gold_model &model, const gold_vector3 &offset = {}) const;
 
 	static gold_unique_ptr<gold_model> load_from_obj(std::string_view filename);
 };

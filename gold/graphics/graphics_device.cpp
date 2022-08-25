@@ -24,6 +24,9 @@ error_code gold_graphicsdevice::init(HINSTANCE inst, size_t width, size_t height
 	if (gl_context)
 		return error_code::already_exists;
 
+	this->width = width;
+	this->height = height;
+
 	WNDCLASSEX wnd_class {};
 	wnd_class.lpszClassName = GOLD_CLASSNAME;
 	wnd_class.hInstance     = inst;
@@ -37,9 +40,9 @@ error_code gold_graphicsdevice::init(HINSTANCE inst, size_t width, size_t height
 	auto screen_height = GetSystemMetrics(SM_CYSCREEN);
 
 	if (width > screen_width)
-		gold_assert("gold_graphicsdevice::init width > screen width!");
+		return error_code::width_too_big;
 	if (height > screen_height)
-		gold_assert("gold_graphicsdevice::init height > screen height!");
+		return error_code::height_too_big;
 
 	DWORD flags = WS_VISIBLE | WS_POPUP;
 	if (width != screen_width || height != screen_height)
@@ -131,9 +134,9 @@ error_code gold_graphicsdevice::begin_render()
 		GetWindowRect(wnd, &wnd_rect);
 		POINT cursor_pos;
 		GetCursorPos(&cursor_pos);
-		SetCursorPos(wnd_rect.left + 800, wnd_rect.top + 450);
-		last_cursor_distance = { static_cast<float>(cursor_pos.x - (wnd_rect.left + 800)),
-			                     static_cast<float>(cursor_pos.y - (wnd_rect.top + 450)), 0.f };
+		SetCursorPos(wnd_rect.left + width * .5f, wnd_rect.top + height * .5f);
+		last_cursor_distance = { static_cast<float>(cursor_pos.x - (wnd_rect.left + width * .5f)),
+			                     static_cast<float>(cursor_pos.y - (wnd_rect.top + height * .5f)), 0.f };
 	}
 
 	glClearColor(.3f, .3f, .3f, 1.f);

@@ -117,8 +117,8 @@ class gold_vector
 	{
 		if (block)
 		{
-			for (auto &element : block)
-				element = {};
+			for (size_t i = 0; i < elements_cur_size; i++)
+				block[i] = {};
 			deallocator(block);
 		}
 		block = nullptr;

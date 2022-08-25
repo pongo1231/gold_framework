@@ -6,6 +6,8 @@
 #include "gold/util/string.h"
 #include "gold/util/time.h"
 
+#include <filesystem>
+
 #define LOG_IF_ERROR(lua, error, prefix, filename)                                 \
 	do                                                                             \
 	{                                                                              \
@@ -126,7 +128,7 @@ static void register_functions(lua_State *lua, std::string_view filename)
 	lua_setglobal(lua, "is_key_just_pressed");
 }
 
-void scriptmanager::register_script(std::string_view filename)
+void gold_scriptmanager::register_script(std::string_view filename)
 {
 	for (const auto &script : script_states)
 	{
@@ -172,7 +174,17 @@ void scriptmanager::register_script(std::string_view filename)
 	script_states.push(script { .script_name = gold_string(filename.data()), .lua = lua });
 }
 
-void scriptmanager::unregister_script(std::string_view filename)
+void gold_scriptmanager::register_scripts(std::string_view path)
+{
+	for (const auto &entry : std::filesystem::directory_iterator(path))
+	{
+		if (entry.is_regular_file() && entry.path().has_extension() && entry.path().extension() == ".lua"
+		    && entry.file_size() > 0)
+			register_script(entry.path().string());
+	}
+}
+
+void gold_scriptmanager::unregister_script(std::string_view filename)
 {
 	for (auto it = script_states.begin(); it != script_states.end();)
 	{
@@ -189,7 +201,15 @@ void scriptmanager::unregister_script(std::string_view filename)
 	LOG_ERROR("Couldn't unregister script " << filename << ": not found!");
 }
 
-void scriptmanager::execute_all_scripts()
+void gold_scriptmanager::unregister_all_scripts()
+{
+	for (const auto& script : script_states)
+		LOG("Unregistered script " << script.script_name);
+
+	script_states.clear();
+}
+
+void gold_scriptmanager::execute_all_scripts()
 {
 	for (auto &script : script_states)
 	{
@@ -201,7 +221,7 @@ void scriptmanager::execute_all_scripts()
 	}
 }
 
-void scriptmanager::execute_script(std::string_view filename)
+void gold_scriptmanager::execute_script(std::string_view filename)
 {
 	const script *found_script = nullptr;
 	for (const auto &script : script_states)
@@ -224,4 +244,9 @@ void scriptmanager::execute_script(std::string_view filename)
 	lua_pushnumber(lua, gold_delta_time);
 	auto error = lua_pcall(lua, 1, 0, 0);
 	LOG_IF_ERROR(lua, error, "Error during on_tick of", found_script->script_name);
+}
+
+const gold_vector<gold_scriptmanager::script> &gold_scriptmanager::get_all_scripts() const
+{
+	return script_states;
 }

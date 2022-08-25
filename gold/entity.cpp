@@ -2,6 +2,7 @@
 
 #include "gold/camera.h"
 #include "gold/graphics/model/factory.h"
+#include "gold/util/time.h"
 
 gold_entity::gold_entity(gold_unique_ptr<gold_model> &&model) : model(std::move(model))
 {
@@ -9,10 +10,22 @@ gold_entity::gold_entity(gold_unique_ptr<gold_model> &&model) : model(std::move(
 
 void gold_entity::update(const gold_camera *camera)
 {
+	/*if (velocity.x)
+	velocity.x = velocity.x > 0.f ? std::min(velocity.x - .1f * weight * gold_delta_time, 0.f) :-std::max(velocity.x +
+	.1f * weight * gold_delta_time, 0.f);*/
+	if (has_gravity && !is_colliding_with_anything())
+		velocity.y -= .1f * gold_delta_time;
+	/* else
+	    velocity.y = velocity.y > 0.f ? std::min(velocity.y - .1f * weight * gold_delta_time, 0.f)
+	                                  : -std::max(velocity.y + .1f * weight * gold_delta_time, 0.f);
+	if (velocity.z)
+	    velocity.z = velocity.z > 0.f ? std::min(velocity.z - .1f * weight * gold_delta_time, 0.f)
+	                                  : -std::max(velocity.z + .1f * weight * gold_delta_time, 0.f);*/
+
+	move(velocity);
+
 	if (camera->get_parent() != this)
 		model->render(camera);
-
-	velocity.y -= 
 }
 
 gold_weak_ptr<gold_model> gold_entity::get_model() const
@@ -43,6 +56,15 @@ const gold_vector3 &gold_entity::get_rotation() const
 void gold_entity::add_velocity(const gold_vector3 &velocity)
 {
 	this->velocity += velocity;
+}
+
+void gold_entity::add_velocity_relative(const gold_vector3 &velocity)
+{
+	const auto &forward = get_forward();
+	const auto &up      = get_up();
+	const auto &left    = get_left();
+
+	this->velocity += (forward * velocity.x) + (up * velocity.y) + (left * velocity.z);
 }
 
 void gold_entity::reset_velocity()
@@ -89,7 +111,7 @@ void gold_entity::move(const gold_vector3 &offset)
 		if (is_colliding_with(*entity))
 		{
 			set_position(old_position);
-			velocity = {};
+			velocity = { };
 			break;
 		}
 	}
@@ -118,7 +140,40 @@ void gold_entity::move_relative(const gold_vector3 &offset)
 	}
 }
 
-bool gold_entity::is_colliding_with(const gold_entity &entity) const
+bool gold_entity::is_colliding_with(const gold_entity &entity, const gold_vector3 &offset) const
 {
-	return model->is_colliding_with(*entity.model);
+	return model->is_colliding_with(*entity.model, offset);
+}
+
+bool gold_entity::is_colliding_with_anything(const gold_vector3 &offset) const
+{
+	for (const auto &[name, entity] : gold_factory.get_all_entities())
+	{
+		if (entity.handle() == this)
+			continue;
+
+		if (is_colliding_with(*entity, offset))
+			return true;
+	}
+
+	return false;
+}
+
+bool gold_entity::is_colliding_with_any_trigger(const gold_vector3 &offset) const
+{
+	for (const auto &[name, entity] : gold_factory.get_all_entities())
+	{
+		if (entity.handle() == this || !entity->model->is_trigger)
+			continue;
+
+		if (is_colliding_with(*entity, offset))
+			return true;
+	}
+
+	return false;
+}
+
+bool gold_entity::is_on_ground() const
+{
+	return is_colliding_with_anything({ 0.f, -.1f, 0.f });
 }

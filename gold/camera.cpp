@@ -18,6 +18,21 @@ gold_camera::gold_camera(gold_graphicsdevice *graphics_device) : graphics_device
 
 void gold_camera::update()
 {
+	if (!rotatable)
+		return;
+
+	const auto &cursor_dist = graphics_device->get_last_cursor_distance();
+	const auto &eye         = get_eye();
+
+	yaw += cursor_dist.x * 0.05f;
+	pitch = std::max(-89.f, std::min(pitch - cursor_dist.y * 0.05f, 89.f));
+
+	gold_vector3 new_rot;
+	new_rot.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+	new_rot.y = sin(glm::radians(pitch));
+	new_rot.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+
+	at = { eye.x + new_rot.x, eye.y + new_rot.y, eye.z + new_rot.z };
 }
 
 void gold_camera::set_eye(const gold_vector3 &eye)
