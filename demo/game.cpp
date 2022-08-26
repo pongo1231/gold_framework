@@ -21,7 +21,7 @@ void gold_game::init(HINSTANCE inst)
 
 	camera          = gold_unique_ptr<gold_camera>::create(graphics_device.handle());
 	camera->set_fov(45.f, 1280.f / 720.f);
-	camera->rotatable     = true;
+	camera->user_rotatable     = true;
 
 	graphics_device->init(inst, 1600, 900);
 
@@ -43,19 +43,19 @@ void gold_game::init(HINSTANCE inst)
 	camera->attach_to_entity(player);
 
 	platform1 = gold_factory.create_entity<gold_model_type::cube>("platform1");
-	platform1->set_position({ 0.f, 0.f, 20.f });
+	platform1->set_position({ 0.f, -2.f, 20.f });
 	platform1->get_model()->set_scale({ 5.f, 5.f, 5.f });
 	platform1->get_model()->set_texture(texture);
 	platform1->has_gravity = false;
 
 	platform2              = gold_factory.create_entity<gold_model_type::obj_model>("platform2", "models/cube.obj");
-	platform2->set_position({ 0.f, 4.f, 40.f });
+	platform2->set_position({ 0.f, 2.f, 40.f });
 	platform2->get_model()->set_scale({ 3.f, 3.f, 3.f });
 	platform2->get_model()->set_texture(texture);
 	platform2->has_gravity = false;
 
 	platform3              = gold_factory.create_entity<gold_model_type::cube>("platform3");
-	platform3->set_position({ 0.f, 8.f, 60.f });
+	platform3->set_position({ 0.f, 6.f, 60.f });
 	platform3->get_model()->set_scale({ 2.f, 2.f, 2.f });
 	platform3->get_model()->set_texture(texture);
 	platform3->has_gravity = false;
@@ -96,13 +96,13 @@ bool gold_game::run()
 		if (camera_state == camera_state::first_person)
 		{
 			camera_state = camera_state::second_person;
-			camera->rotatable = false;
+			camera->user_rotatable = false;
 			camera->detach_from_parent();
 		}
 		else
 		{
 			camera_state = camera_state::first_person;
-			camera->rotatable = true;
+			camera->user_rotatable = true;
 			camera->set_eye({ 0.f, 0.f, 0.f });
 			camera->set_look_at({ 0.f, 0.f, 0.f });
 			camera->attach_to_entity(player);
@@ -116,8 +116,8 @@ bool gold_game::run()
 		camera->set_look_at({ player_pos.x, player_pos.y, player_pos.z });
 	}
 
-	gold_global_light_color = { .5f + std::sinf(GetTickCount64() * .00005f) * .5f, .5f + std::sinf(GetTickCount64() * .0001f) * .5f,
-		                        .5f + std::sinf(GetTickCount64() * .0002f) * .5f };
+	gold_global_light_color = { .5f + sinf(GetTickCount64() * .00005f) * .5f, .5f + sinf(GetTickCount64() * .0001f) * .5f,
+		                        .5f + sinf(GetTickCount64() * .0002f) * .5f };
 
 	gold_vector3 move;
 

@@ -267,7 +267,10 @@ class gold_memory
 				const auto &prev_alloc_ptr = prev_it--->first;
 
 				if (alloc_end + size < prev_alloc_ptr)
+				{
 					new_address = alloc_end;
+					break;
+				}
 			}
 		}
 

@@ -18,7 +18,7 @@ gold_camera::gold_camera(gold_graphicsdevice *graphics_device) : graphics_device
 
 void gold_camera::update()
 {
-	if (!rotatable)
+	if (!user_rotatable)
 		return;
 
 	const auto &cursor_dist = graphics_device->get_last_cursor_distance();

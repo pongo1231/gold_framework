@@ -162,7 +162,7 @@ HGLRC gold_graphicsdevice::get_context() const
 	return gl_context;
 }
 
-HWND gold_graphicsdevice::get_wnd() const
+HWND gold_graphicsdevice::get_window() const
 {
 	return wnd;
 }

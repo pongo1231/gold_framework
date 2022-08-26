@@ -55,7 +55,7 @@ template <void *(*allocator)(size_t), void (*deallocator)(void *)> class gold_ba
 	 * Move constructor
 	 * <param name="str">Other string</param>
 	 */
-	gold_base_string(const gold_base_string &&str) : buffer(str.buffer), buffer_length(str.buffer_length) noexcept
+	gold_base_string(const gold_base_string &&str) noexcept : buffer(str.buffer), buffer_length(str.buffer_length)
 	{
 	}
 
